@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(authenticateToken);
 
   // Analytics endpoints
-  app.get("/api/analytics/summary", async (req, res) => {
+  app.get("/api/analytics/summary", async (req: any, res) => {
     try {
       const summary = await storageInstance.getAnalyticsSummary(req.userId);
       res.json(summary);
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics", async (req, res) => {
+  app.get("/api/analytics", async (req: any, res) => {
     try {
       const { platform } = req.query;
       const analytics = await storageInstance.getAnalytics(req.userId, platform as string);
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Social accounts endpoints - supports unlimited accounts per user
-  app.get("/api/social-accounts", async (req, res) => {
+  app.get("/api/social-accounts", async (req: any, res) => {
     try {
       const accounts = await storageInstance.getSocialAccounts(req.userId);
       res.json(accounts);
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/social-accounts", async (req, res) => {
+  app.post("/api/social-accounts", async (req: any, res) => {
     try {
       const accountData = insertSocialAccountSchema.parse({
         ...req.body,
@@ -228,15 +228,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Posts endpoints
-  app.get("/api/posts", async (req, res) => {
+  app.get("/api/posts", async (req: any, res) => {
     try {
       const { status } = req.query;
       let posts;
       
       if (status) {
-        posts = await storage.getPostsByStatus(DEFAULT_USER_ID, status as string);
+        posts = await storageInstance.getPostsByStatus(req.userId, status as string);
       } else {
-        posts = await storage.getPosts(DEFAULT_USER_ID);
+        posts = await storageInstance.getPosts(req.userId);
       }
       
       res.json(posts);
@@ -245,20 +245,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/upcoming", async (req, res) => {
+  app.get("/api/posts/upcoming", async (req: any, res) => {
     try {
-      const posts = await storage.getUpcomingPosts(DEFAULT_USER_ID);
+      const posts = await storageInstance.getUpcomingPosts(req.userId);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch upcoming posts" });
     }
   });
 
-  app.get("/api/posts/top-performing", async (req, res) => {
+  app.get("/api/posts/top-performing", async (req: any, res) => {
     try {
       const { limit } = req.query;
-      const posts = await storage.getTopPerformingPosts(
-        DEFAULT_USER_ID,
+      const posts = await storageInstance.getTopPerformingPosts(
+        req.userId,
         limit ? parseInt(limit as string) : undefined
       );
       res.json(posts);
@@ -267,17 +267,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts", async (req, res) => {
+  app.post("/api/posts", async (req: any, res) => {
     try {
       const postData = insertPostSchema.parse({
         ...req.body,
-        userId: DEFAULT_USER_ID,
+        userId: req.userId,
       });
-      const post = await storage.createPost(postData);
+      const post = await storageInstance.createPost(postData);
       
       // Create activity for post creation
-      await storage.createActivity({
-        userId: DEFAULT_USER_ID,
+      await storageInstance.createActivity({
+        userId: req.userId,
         type: postData.status === "published" ? "post_published" : "post_scheduled",
         description: `Post ${postData.status} on ${postData.platforms.join(", ")}`,
         platform: postData.platforms[0],
@@ -294,11 +294,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/posts/:id", async (req, res) => {
+  app.patch("/api/posts/:id", async (req: any, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
-      const post = await storage.updatePost(parseInt(id), updates);
+      const post = await storageInstance.updatePost(parseInt(id), updates);
       
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
@@ -311,26 +311,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Automations endpoints
-  app.get("/api/automations", async (req, res) => {
+  app.get("/api/automations", async (req: any, res) => {
     try {
-      const automations = await storage.getAutomations(DEFAULT_USER_ID);
+      const automations = await storageInstance.getAutomations(req.userId);
       res.json(automations);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch automations" });
     }
   });
 
-  app.post("/api/automations", async (req, res) => {
+  app.post("/api/automations", async (req: any, res) => {
     try {
       const automationData = insertAutomationSchema.parse({
         ...req.body,
-        userId: DEFAULT_USER_ID,
+        userId: req.userId,
       });
-      const automation = await storage.createAutomation(automationData);
+      const automation = await storageInstance.createAutomation(automationData);
       
       // Create activity for automation creation
-      await storage.createActivity({
-        userId: DEFAULT_USER_ID,
+      await storageInstance.createActivity({
+        userId: req.userId,
         type: "automation_created",
         description: `Created automation: ${automation.name}`,
         metadata: { automationId: automation.id },
@@ -346,10 +346,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/automations/:id/toggle", async (req, res) => {
+  app.patch("/api/automations/:id/toggle", async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.toggleAutomation(parseInt(id));
+      await storageInstance.toggleAutomation(parseInt(id));
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to toggle automation" });
@@ -357,11 +357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activities endpoints
-  app.get("/api/activities", async (req, res) => {
+  app.get("/api/activities", async (req: any, res) => {
     try {
       const { limit } = req.query;
-      const activities = await storage.getRecentActivities(
-        DEFAULT_USER_ID,
+      const activities = await storageInstance.getRecentActivities(
+        req.userId,
         limit ? parseInt(limit as string) : undefined
       );
       res.json(activities);
@@ -371,9 +371,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Content Library endpoints
-  app.get("/api/content-library", async (req, res) => {
+  app.get("/api/content-library", async (req: any, res) => {
     try {
-      const items = await storage.getContentLibrary(DEFAULT_USER_ID);
+      const items = await storageInstance.getContentLibrary(req.userId);
       res.json(items);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch content library" });

@@ -34,6 +34,7 @@ export interface IStorage {
   getSocialAccounts(userId: number): Promise<SocialAccount[]>;
   createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount>;
   updateSocialAccountStatus(id: number, isConnected: boolean): Promise<void>;
+  deleteSocialAccount(id: number): Promise<void>;
 
   // Posts
   getPosts(userId: number): Promise<Post[]>;
@@ -336,6 +337,10 @@ export class MemStorage implements IStorage {
     if (account) {
       account.isConnected = isConnected;
     }
+  }
+
+  async deleteSocialAccount(id: number): Promise<void> {
+    this.socialAccounts.delete(id);
   }
 
   async getPosts(userId: number): Promise<Post[]> {
