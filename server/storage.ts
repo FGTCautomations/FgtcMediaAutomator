@@ -323,6 +323,8 @@ export class MemStorage implements IStorage {
       name: insertUser.name,
       avatar: insertUser.avatar || null,
       supabaseId: insertUser.supabaseId || null,
+      role: "user",
+      currentWorkspaceId: null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -372,12 +374,16 @@ export class MemStorage implements IStorage {
     const post: Post = {
       ...insertPost,
       id,
+      categoryId: insertPost.categoryId || null,
+      assignedToId: insertPost.assignedToId || null,
       media: insertPost.media || null,
       status: insertPost.status || "draft",
       scheduledAt: insertPost.scheduledAt || null,
       engagement: insertPost.engagement || null,
       createdAt: new Date(),
       publishedAt: null,
+      approvedAt: null,
+      approvedById: null,
     };
     this.posts.set(id, post);
     return post;
@@ -541,6 +547,9 @@ export class MemStorage implements IStorage {
     const category: ContentCategory = {
       id: this.currentContentCategoryId++,
       ...insertCategory,
+      description: insertCategory.description || null,
+      color: insertCategory.color || null,
+      autoQueueRules: insertCategory.autoQueueRules || null,
       createdAt: new Date(),
     };
     this.contentCategories.set(category.id, category);
@@ -571,6 +580,7 @@ export class MemStorage implements IStorage {
     const comment: PostComment = {
       id: this.currentPostCommentId++,
       ...insertComment,
+      isInternal: insertComment.isInternal || false,
       createdAt: new Date(),
     };
     this.postComments.set(comment.id, comment);
@@ -588,6 +598,8 @@ export class MemStorage implements IStorage {
     const media: MediaLibrary = {
       id: this.currentMediaLibraryId++,
       ...insertMedia,
+      tags: insertMedia.tags || null,
+      alt: insertMedia.alt || null,
       createdAt: new Date(),
     };
     this.mediaLibrary.set(media.id, media);

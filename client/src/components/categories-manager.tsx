@@ -79,7 +79,7 @@ export default function CategoriesManager() {
     setFormData({
       name: category.name,
       description: category.description || "",
-      color: category.color,
+      color: category.color || "",
       autoQueueRules: category.autoQueueRules || {}
     });
   };
@@ -203,7 +203,7 @@ export default function CategoriesManager() {
                   <div className="flex items-center space-x-3">
                     <div
                       className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: category.color }}
+                      style={{ backgroundColor: category.color || "#3B82F6" }}
                     />
                     <CardTitle className="text-lg">{category.name}</CardTitle>
                   </div>
