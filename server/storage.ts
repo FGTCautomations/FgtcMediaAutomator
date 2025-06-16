@@ -25,8 +25,10 @@ import {
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserBySupabaseId(supabaseId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
 
   // Social Accounts
   getSocialAccounts(userId: number): Promise<SocialAccount[]>;
@@ -90,11 +92,10 @@ export class MemStorage implements IStorage {
     // Create default user
     const user: User = {
       id: 1,
-      username: "johndoe",
-      password: "password",
       email: "john@example.com",
       name: "John Doe",
       avatar: null,
+      supabaseId: null,
       createdAt: new Date(),
     };
     this.users.set(1, user);
@@ -287,15 +288,26 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    // Legacy method - usernames no longer used
+    return undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async getUserBySupabaseId(supabaseId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.supabaseId === supabaseId);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const user: User = {
-      ...insertUser,
       id,
+      email: insertUser.email,
+      name: insertUser.name,
       avatar: insertUser.avatar || null,
+      supabaseId: insertUser.supabaseId || null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
