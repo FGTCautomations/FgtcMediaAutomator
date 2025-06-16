@@ -3,17 +3,11 @@ import { storage } from "./storage";
 
 // OAuth configuration for each platform
 const OAUTH_CONFIG = {
-  facebook: {
-    clientId: process.env.FACEBOOK_CLIENT_ID,
-    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-    tokenUrl: "https://graph.facebook.com/v18.0/oauth/access_token",
-    userUrl: "https://graph.facebook.com/me?fields=id,name,accounts{id,name,access_token}",
-  },
-  twitter: {
-    clientId: process.env.TWITTER_CLIENT_ID,
-    clientSecret: process.env.TWITTER_CLIENT_SECRET,
-    tokenUrl: "https://api.twitter.com/2/oauth2/token",
-    userUrl: "https://api.twitter.com/2/users/me",
+  linkedin: {
+    clientId: process.env.LINKEDIN_CLIENT_ID,
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+    tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+    userUrl: "https://api.linkedin.com/v2/people/~:(id,firstName,lastName)",
   },
   instagram: {
     clientId: process.env.INSTAGRAM_CLIENT_ID,
@@ -21,11 +15,11 @@ const OAUTH_CONFIG = {
     tokenUrl: "https://api.instagram.com/oauth/access_token",
     userUrl: "https://graph.instagram.com/me?fields=id,username",
   },
-  linkedin: {
-    clientId: process.env.LINKEDIN_CLIENT_ID,
-    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
-    userUrl: "https://api.linkedin.com/v2/people/~:(id,firstName,lastName)",
+  twitter: {
+    clientId: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    tokenUrl: "https://api.twitter.com/2/oauth2/token",
+    userUrl: "https://api.twitter.com/2/users/me",
   },
   youtube: {
     clientId: process.env.GOOGLE_CLIENT_ID,
@@ -33,11 +27,35 @@ const OAUTH_CONFIG = {
     tokenUrl: "https://oauth2.googleapis.com/token",
     userUrl: "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
   },
+  googlemybusiness: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    tokenUrl: "https://oauth2.googleapis.com/token",
+    userUrl: "https://mybusinessbusinessinformation.googleapis.com/v1/accounts",
+  },
+  bluesky: {
+    clientId: process.env.BLUESKY_CLIENT_ID,
+    clientSecret: process.env.BLUESKY_CLIENT_SECRET,
+    tokenUrl: "https://bsky.social/xrpc/com.atproto.server.createSession",
+    userUrl: "https://bsky.social/xrpc/com.atproto.identity.resolveHandle",
+  },
+  tumblr: {
+    clientId: process.env.TUMBLR_CLIENT_ID,
+    clientSecret: process.env.TUMBLR_CLIENT_SECRET,
+    tokenUrl: "https://www.tumblr.com/oauth2/token",
+    userUrl: "https://api.tumblr.com/v2/user/info",
+  },
   tiktok: {
     clientId: process.env.TIKTOK_CLIENT_ID,
     clientSecret: process.env.TIKTOK_CLIENT_SECRET,
     tokenUrl: "https://open-api.tiktok.com/oauth/access_token/",
     userUrl: "https://open-api.tiktok.com/user/info/",
+  },
+  pinterest: {
+    clientId: process.env.PINTEREST_CLIENT_ID,
+    clientSecret: process.env.PINTEREST_CLIENT_SECRET,
+    tokenUrl: "https://api.pinterest.com/v5/oauth/token",
+    userUrl: "https://api.pinterest.com/v5/user_account",
   },
 };
 
@@ -90,73 +108,117 @@ function getSetupInstructions(platform: string, req: any): string {
   const redirectUri = `${req.protocol}://${req.get('host')}/auth/callback/${platform}`;
   
   const platformConfig = {
-    facebook: {
-      name: "Facebook",
-      developerUrl: "https://developers.facebook.com/apps/",
-      description: "Create a Facebook App to connect Facebook Pages and personal profiles",
-      scopes: "pages_manage_posts, pages_read_engagement",
+    linkedin: {
+      name: "LinkedIn",
+      developerUrl: "https://www.linkedin.com/developers/apps",
+      description: "Create a LinkedIn App for company page and personal posting",
+      scopes: "w_member_social, r_liteprofile, r_organization_social, w_organization_social",
       additionalSteps: [
-        "Add 'Facebook Login' product to your app",
-        "In App Settings > Basic, note down your App ID and App Secret",
-        "In Facebook Login > Settings, add the redirect URI"
-      ]
-    },
-    twitter: {
-      name: "Twitter/X",
-      developerUrl: "https://developer.twitter.com/en/portal/dashboard",
-      description: "Create a Twitter Developer App for posting tweets",
-      scopes: "tweet.read, tweet.write, users.read",
-      additionalSteps: [
-        "Create a new project and app",
-        "Enable OAuth 2.0 in app settings",
-        "Generate Client ID and Client Secret",
-        "Add the redirect URI to OAuth settings"
+        "Create a new app and associate with a LinkedIn Page or Company",
+        "Add 'Sign In with LinkedIn' and 'Share on LinkedIn' products",
+        "Request Marketing Developer Platform access for advanced features",
+        "Verify your company domain for organization posting"
       ]
     },
     instagram: {
       name: "Instagram",
       developerUrl: "https://developers.facebook.com/apps/",
-      description: "Use Facebook App with Instagram Basic Display API",
-      scopes: "instagram_basic, instagram_content_publish",
+      description: "Use Facebook App with Instagram Basic Display and Content Publishing API",
+      scopes: "instagram_basic, instagram_content_publish, pages_read_engagement",
       additionalSteps: [
-        "Add 'Instagram Basic Display' product to your Facebook app",
-        "Configure Instagram app settings",
-        "Add test users if needed for development"
+        "Create a Facebook app and add Instagram Basic Display product",
+        "Add Instagram Content Publishing API for business accounts",
+        "Connect your Instagram Business or Creator account",
+        "Add test users and submit for app review if needed"
       ]
     },
-    linkedin: {
-      name: "LinkedIn",
-      developerUrl: "https://www.linkedin.com/developers/apps",
-      description: "Create a LinkedIn App for company page posting",
-      scopes: "w_member_social, r_liteprofile",
+    twitter: {
+      name: "Twitter/X",
+      developerUrl: "https://developer.twitter.com/en/portal/dashboard",
+      description: "Create a Twitter Developer App for posting tweets and managing content",
+      scopes: "tweet.read, tweet.write, users.read, offline.access",
       additionalSteps: [
-        "Create a new app and associate with a LinkedIn Page",
-        "Add 'Sign In with LinkedIn' product",
-        "Request additional permissions if needed for posting"
+        "Apply for Twitter Developer account access",
+        "Create a new project and app",
+        "Enable OAuth 2.0 with PKCE in app settings",
+        "Generate Client ID and Client Secret",
+        "Add callback URLs to app authentication settings"
       ]
     },
     youtube: {
       name: "YouTube",
       developerUrl: "https://console.developers.google.com/",
-      description: "Create Google Cloud Project with YouTube API access",
-      scopes: "https://www.googleapis.com/auth/youtube.upload",
+      description: "Create Google Cloud Project with YouTube Data API for channel management",
+      scopes: "https://www.googleapis.com/auth/youtube.upload, https://www.googleapis.com/auth/youtube",
       additionalSteps: [
         "Create a new Google Cloud project",
-        "Enable YouTube Data API v3",
+        "Enable YouTube Data API v3 in the API Library",
+        "Create OAuth 2.0 credentials (Web application type)",
+        "Add authorized redirect URIs",
+        "Set up OAuth consent screen"
+      ]
+    },
+    googlemybusiness: {
+      name: "Google My Business",
+      developerUrl: "https://console.developers.google.com/",
+      description: "Create Google Cloud Project with My Business API for business location posting",
+      scopes: "https://www.googleapis.com/auth/business.manage",
+      additionalSteps: [
+        "Create a Google Cloud project",
+        "Enable Google My Business API",
         "Create OAuth 2.0 credentials",
-        "Add authorized redirect URIs"
+        "Set up OAuth consent screen with business information",
+        "Verify ownership of business locations"
+      ]
+    },
+    bluesky: {
+      name: "Bluesky",
+      developerUrl: "https://bsky.social",
+      description: "Connect to Bluesky using AT Protocol authentication",
+      scopes: "atproto sessions, post creation",
+      additionalSteps: [
+        "Create a Bluesky account at bsky.social",
+        "Generate an App Password in Settings > Privacy and Security",
+        "Use your handle and app password for authentication",
+        "Note: Bluesky uses AT Protocol, not traditional OAuth"
+      ]
+    },
+    tumblr: {
+      name: "Tumblr",
+      developerUrl: "https://www.tumblr.com/oauth/apps",
+      description: "Create a Tumblr OAuth application for blog posting",
+      scopes: "write, offline_access",
+      additionalSteps: [
+        "Register a new OAuth application",
+        "Add application details and callback URL",
+        "Note your OAuth Consumer Key and Consumer Secret",
+        "Configure OAuth 2.0 settings for your application"
       ]
     },
     tiktok: {
       name: "TikTok",
       developerUrl: "https://developers.tiktok.com/",
-      description: "Create TikTok Developer App for content posting",
-      scopes: "user.info.basic, video.publish",
+      description: "Create TikTok for Developers app for content posting and management",
+      scopes: "user.info.basic, user.info.profile, video.publish, video.list",
       additionalSteps: [
         "Apply for TikTok for Developers access",
-        "Create a new app",
-        "Enable required APIs (Login Kit, Content Posting API)",
-        "Wait for app approval if required"
+        "Create a new app with content posting use case",
+        "Enable Login Kit and Content Posting API",
+        "Submit for app review and approval",
+        "Configure webhook endpoints if needed"
+      ]
+    },
+    pinterest: {
+      name: "Pinterest",
+      developerUrl: "https://developers.pinterest.com/apps/",
+      description: "Create Pinterest Developer app for pin creation and board management",
+      scopes: "boards:read, boards:write, pins:read, pins:write, user_accounts:read",
+      additionalSteps: [
+        "Create a Pinterest Business account",
+        "Register a new app in Pinterest Developer portal",
+        "Add your website and verify domain ownership",
+        "Configure OAuth redirect URIs",
+        "Request additional scopes if needed for advanced features"
       ]
     }
   };
@@ -320,31 +382,43 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       let accountId = "";
       
       switch (platform) {
-        case "facebook":
-          accountName = userInfo.name || "Facebook User";
-          accountId = userInfo.id;
-          break;
-        case "twitter":
-          accountName = `@${userInfo.data?.username || userInfo.username || "twitter_user"}`;
-          accountId = userInfo.data?.id || userInfo.id;
-          break;
-        case "instagram":
-          accountName = `@${userInfo.username || "instagram_user"}`;
-          accountId = userInfo.id;
-          break;
         case "linkedin":
           const firstName = userInfo.firstName?.localized?.en_US || userInfo.firstName;
           const lastName = userInfo.lastName?.localized?.en_US || userInfo.lastName;
           accountName = `${firstName} ${lastName}`.trim() || "LinkedIn User";
           accountId = userInfo.id;
           break;
+        case "instagram":
+          accountName = `@${userInfo.username || "instagram_user"}`;
+          accountId = userInfo.id;
+          break;
+        case "twitter":
+          accountName = `@${userInfo.data?.username || userInfo.username || "twitter_user"}`;
+          accountId = userInfo.data?.id || userInfo.id;
+          break;
         case "youtube":
           accountName = userInfo.items?.[0]?.snippet?.title || "YouTube Channel";
           accountId = userInfo.items?.[0]?.id || "youtube_channel";
           break;
+        case "googlemybusiness":
+          accountName = userInfo.accounts?.[0]?.accountName || "My Business";
+          accountId = userInfo.accounts?.[0]?.name || "gmb_account";
+          break;
+        case "bluesky":
+          accountName = `@${userInfo.handle || "bluesky_user"}`;
+          accountId = userInfo.did || userInfo.handle;
+          break;
+        case "tumblr":
+          accountName = userInfo.response?.user?.name || "Tumblr User";
+          accountId = userInfo.response?.user?.name || "tumblr_user";
+          break;
         case "tiktok":
           accountName = `@${userInfo.data?.user?.display_name || "tiktok_user"}`;
           accountId = userInfo.data?.user?.union_id || userInfo.data?.user?.open_id;
+          break;
+        case "pinterest":
+          accountName = userInfo.username || "Pinterest User";
+          accountId = userInfo.id;
           break;
       }
 

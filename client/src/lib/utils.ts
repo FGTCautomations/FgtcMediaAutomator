@@ -75,22 +75,30 @@ export function formatScheduledTime(date: Date): string {
 
 export function getPlatformIcon(platform: string): string {
   const icons: Record<string, string> = {
-    facebook: 'fab fa-facebook',
-    twitter: 'fab fa-twitter',
-    instagram: 'fab fa-instagram',
     linkedin: 'fab fa-linkedin',
+    instagram: 'fab fa-instagram',
+    twitter: 'fab fa-twitter',
     youtube: 'fab fa-youtube',
+    googlemybusiness: 'fas fa-map-marker-alt',
+    bluesky: 'fas fa-cloud',
+    tumblr: 'fab fa-tumblr',
+    tiktok: 'fab fa-tiktok',
+    pinterest: 'fab fa-pinterest',
   };
   return icons[platform] || 'fas fa-globe';
 }
 
 export function getPlatformColor(platform: string): string {
   const colors: Record<string, string> = {
-    facebook: 'text-blue-600',
-    twitter: 'text-blue-400',
-    instagram: 'text-pink-500',
     linkedin: 'text-blue-700',
+    instagram: 'text-pink-500',
+    twitter: 'text-blue-400',
     youtube: 'text-red-600',
+    googlemybusiness: 'text-green-600',
+    bluesky: 'text-sky-500',
+    tumblr: 'text-indigo-600',
+    tiktok: 'text-gray-900',
+    pinterest: 'text-red-500',
   };
   return colors[platform] || 'text-gray-500';
 }

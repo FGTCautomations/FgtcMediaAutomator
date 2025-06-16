@@ -129,10 +129,16 @@ export default function Sidebar() {
             <div className="space-y-3">
               {[
                 { 
-                  platform: "facebook", 
-                  name: "Facebook",
-                  description: "Connect Facebook Pages and personal profiles",
-                  oauth: "https://www.facebook.com/v18.0/dialog/oauth"
+                  platform: "linkedin", 
+                  name: "LinkedIn",
+                  description: "Connect LinkedIn Company Pages and personal profiles",
+                  oauth: "https://www.linkedin.com/oauth/v2/authorization"
+                },
+                { 
+                  platform: "instagram", 
+                  name: "Instagram",
+                  description: "Connect Instagram Business and Creator accounts",
+                  oauth: "https://api.instagram.com/oauth/authorize"
                 },
                 { 
                   platform: "twitter", 
@@ -141,28 +147,40 @@ export default function Sidebar() {
                   oauth: "https://twitter.com/i/oauth2/authorize"
                 },
                 { 
-                  platform: "instagram", 
-                  name: "Instagram",
-                  description: "Connect Instagram Business accounts",
-                  oauth: "https://api.instagram.com/oauth/authorize"
-                },
-                { 
-                  platform: "linkedin", 
-                  name: "LinkedIn",
-                  description: "Connect LinkedIn Company Pages",
-                  oauth: "https://www.linkedin.com/oauth/v2/authorization"
-                },
-                { 
                   platform: "youtube", 
                   name: "YouTube",
-                  description: "Connect your YouTube channel",
-                  oauth: "https://accounts.google.com/oauth2/v2/auth"
+                  description: "Connect your YouTube channel for video uploads",
+                  oauth: "https://accounts.google.com/o/oauth2/v2/auth"
+                },
+                { 
+                  platform: "googlemybusiness", 
+                  name: "Google My Business",
+                  description: "Connect business locations for local posting",
+                  oauth: "https://accounts.google.com/o/oauth2/v2/auth"
+                },
+                { 
+                  platform: "bluesky", 
+                  name: "Bluesky",
+                  description: "Connect your Bluesky account via AT Protocol",
+                  oauth: "https://bsky.social/oauth/authorize"
+                },
+                { 
+                  platform: "tumblr", 
+                  name: "Tumblr",
+                  description: "Connect Tumblr blogs for content posting",
+                  oauth: "https://www.tumblr.com/oauth2/authorize"
                 },
                 { 
                   platform: "tiktok", 
                   name: "TikTok",
-                  description: "Connect TikTok Business accounts",
-                  oauth: "https://www.tiktok.com/auth/authorize"
+                  description: "Connect TikTok Business accounts for video posting",
+                  oauth: "https://www.tiktok.com/v2/auth/authorize"
+                },
+                { 
+                  platform: "pinterest", 
+                  name: "Pinterest",
+                  description: "Connect Pinterest Business for pin management",
+                  oauth: "https://www.pinterest.com/oauth/"
                 }
               ].map((platform) => (
                 <div
@@ -184,12 +202,15 @@ export default function Sidebar() {
                       onClick={() => {
                         // Get client ID from environment or show configuration needed
                         const clientIds = {
-                          facebook: import.meta.env.VITE_FACEBOOK_CLIENT_ID,
-                          twitter: import.meta.env.VITE_TWITTER_CLIENT_ID,
-                          instagram: import.meta.env.VITE_INSTAGRAM_CLIENT_ID,
                           linkedin: import.meta.env.VITE_LINKEDIN_CLIENT_ID,
+                          instagram: import.meta.env.VITE_INSTAGRAM_CLIENT_ID,
+                          twitter: import.meta.env.VITE_TWITTER_CLIENT_ID,
                           youtube: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                          googlemybusiness: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                          bluesky: import.meta.env.VITE_BLUESKY_CLIENT_ID,
+                          tumblr: import.meta.env.VITE_TUMBLR_CLIENT_ID,
                           tiktok: import.meta.env.VITE_TIKTOK_CLIENT_ID,
+                          pinterest: import.meta.env.VITE_PINTEREST_CLIENT_ID,
                         };
                         
                         const clientId = clientIds[platform.platform as keyof typeof clientIds];
@@ -206,12 +227,16 @@ export default function Sidebar() {
                         }
                         
                         const redirectUri = `${window.location.origin}/auth/callback/${platform.platform}`;
-                        const scope = platform.platform === "facebook" ? "pages_manage_posts,pages_read_engagement" :
-                                     platform.platform === "twitter" ? "tweet.read,tweet.write,users.read" :
+                        const scope = platform.platform === "linkedin" ? "w_member_social,r_liteprofile,r_organization_social,w_organization_social" :
                                      platform.platform === "instagram" ? "instagram_basic,instagram_content_publish" :
-                                     platform.platform === "linkedin" ? "w_member_social,r_liteprofile" :
-                                     platform.platform === "youtube" ? "https://www.googleapis.com/auth/youtube.upload" :
-                                     "user.info.basic,video.publish";
+                                     platform.platform === "twitter" ? "tweet.read,tweet.write,users.read,offline.access" :
+                                     platform.platform === "youtube" ? "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube" :
+                                     platform.platform === "googlemybusiness" ? "https://www.googleapis.com/auth/business.manage" :
+                                     platform.platform === "bluesky" ? "atproto" :
+                                     platform.platform === "tumblr" ? "write,offline_access" :
+                                     platform.platform === "tiktok" ? "user.info.basic,user.info.profile,video.publish,video.list" :
+                                     platform.platform === "pinterest" ? "boards:read,boards:write,pins:read,pins:write,user_accounts:read" :
+                                     "read,write";
                         
                         const authUrl = `${platform.oauth}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform.platform}`;
                         
