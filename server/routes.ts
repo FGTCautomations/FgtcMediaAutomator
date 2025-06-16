@@ -6,6 +6,7 @@ import { insertPostSchema, insertAutomationSchema, insertSocialAccountSchema, in
 import { openaiService } from "./openai-service";
 import { authService } from "./auth-service";
 import { DatabaseStorage } from "./db-storage";
+import { registerOAuthRoutes } from "./oauth-handlers";
 
 // Use memory storage for MVP to avoid database connection issues
 const storageInstance = storage;
@@ -364,6 +365,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch content library" });
     }
   });
+
+  // Register OAuth routes for real social media connections
+  registerOAuthRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

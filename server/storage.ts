@@ -102,28 +102,8 @@ export class MemStorage implements IStorage {
     this.users.set(1, user);
     this.currentUserId = 2;
 
-    // Create social accounts
-    const socialAccountsData = [
-      { platform: "facebook", accountName: "Main Account", accountId: "fb_123", isConnected: true },
-      { platform: "twitter", accountName: "@company", accountId: "tw_456", isConnected: true },
-      { platform: "instagram", accountName: "company_insta", accountId: "ig_789", isConnected: true },
-      { platform: "linkedin", accountName: "Company Page", accountId: "li_101", isConnected: false },
-    ];
-
-    socialAccountsData.forEach((account, index) => {
-      const socialAccount: SocialAccount = {
-        id: index + 1,
-        userId: 1,
-        platform: account.platform,
-        accountName: account.accountName,
-        accountId: account.accountId,
-        accessToken: `token_${account.accountId}`,
-        isConnected: account.isConnected,
-        createdAt: new Date(),
-      };
-      this.socialAccounts.set(index + 1, socialAccount);
-    });
-    this.currentSocialAccountId = 5;
+    // Start with no social accounts - users must connect real ones
+    this.currentSocialAccountId = 1;
 
     // Create sample posts
     const postsData = [
