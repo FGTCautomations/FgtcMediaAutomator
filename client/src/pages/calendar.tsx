@@ -19,10 +19,7 @@ export default function Calendar() {
 
   const updatePostMutation = useMutation({
     mutationFn: async ({ postId, scheduledAt }: { postId: number; scheduledAt: Date }) => {
-      return apiRequest(`/api/posts/${postId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ scheduledAt }),
-      });
+      return apiRequest("PATCH", `/api/posts/${postId}`, { scheduledAt });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });

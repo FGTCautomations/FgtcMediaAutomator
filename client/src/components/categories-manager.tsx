@@ -27,10 +27,7 @@ export default function CategoriesManager() {
 
   const createCategoryMutation = useMutation({
     mutationFn: async (categoryData: any) => {
-      return apiRequest("/api/content-categories", {
-        method: "POST",
-        body: JSON.stringify(categoryData),
-      });
+      return apiRequest("POST", "/api/content-categories", categoryData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/content-categories"] });

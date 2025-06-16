@@ -27,11 +27,7 @@ export default function Team() {
 
   const assignPostMutation = useMutation({
     mutationFn: async ({ postId, assignedToId }: { postId: number; assignedToId: number | null }) => {
-      return apiRequest(`/api/posts/${postId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ assignedToId }),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest("PATCH", `/api/posts/${postId}`, { assignedToId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
@@ -40,10 +36,7 @@ export default function Team() {
 
   const approvePostMutation = useMutation({
     mutationFn: async (postId: number) => {
-      return apiRequest(`/api/posts/${postId}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest("POST", `/api/posts/${postId}/approve`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
@@ -52,11 +45,7 @@ export default function Team() {
 
   const inviteMemberMutation = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
-      return apiRequest("/api/team/invite", {
-        method: "POST",
-        body: JSON.stringify({ email, role }),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest("POST", "/api/team/invite", { email, role });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
