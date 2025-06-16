@@ -106,7 +106,7 @@ export default function Team() {
   const assignedPosts = posts.filter(post => post.assignedToId);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
+    <div className="p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Team Management</h1>
