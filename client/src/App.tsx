@@ -5,7 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ErrorBoundary } from "@/components/feedback/error-boundary";
-import AuthWrapper from "@/components/auth/auth-wrapper";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import LoginPage from "@/pages/login";
+import SignupPage from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
 import Calendar from "@/pages/calendar";
 import Compose from "@/pages/compose";
@@ -17,21 +20,42 @@ import Team from "@/pages/team";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
-      <AuthWrapper>
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/calendar" component={Calendar} />
-          <Route path="/compose" component={Compose} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/automations" component={Automations} />
-          <Route path="/content-library" component={ContentLibrary} />
-          <Route path="/content-management" component={ContentManagement} />
-          <Route path="/team" component={Team} />
-          <Route component={NotFound} />
-        </Switch>
-      </AuthWrapper>
+      <Switch>
+        {/* Auth routes - available when not logged in */}
+        <Route path="/login" component={LoginPage} />
+        <Route path="/signup" component={SignupPage} />
+        
+        {/* Protected routes - available when logged in */}
+        {user ? (
+          <>
+            <Route path="/" component={Dashboard} />
+            <Route path="/calendar" component={Calendar} />
+            <Route path="/compose" component={Compose} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/automations" component={Automations} />
+            <Route path="/content-library" component={ContentLibrary} />
+            <Route path="/content-management" component={ContentManagement} />
+            <Route path="/team" component={Team} />
+          </>
+        ) : (
+          /* Redirect to login if not authenticated */
+          <Route path="/" component={LoginPage} />
+        )}
+        
+        <Route component={NotFound} />
+      </Switch>
     </ErrorBoundary>
   );
 }
