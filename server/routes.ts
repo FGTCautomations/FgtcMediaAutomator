@@ -149,7 +149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics endpoints
   app.get("/api/analytics/summary", async (req: any, res) => {
     try {
-      const summary = await storageInstance.getAnalyticsSummary(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const summary = await storageInstance.getAnalyticsSummary(userId);
       res.json(summary);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch analytics summary" });
@@ -158,8 +161,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics", async (req: any, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
       const { platform } = req.query;
-      const analytics = await storageInstance.getAnalytics(req.userId, platform as string);
+      const analytics = await storageInstance.getAnalytics(userId, platform as string);
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch analytics" });
