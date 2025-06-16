@@ -158,11 +158,14 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics
   async getAnalytics(userId: number, platform?: string): Promise<Analytics[]> {
-    let query = db.select().from(analytics).where(eq(analytics.userId, userId));
     if (platform) {
-      query = query.where(eq(analytics.platform, platform));
+      return await db.select().from(analytics)
+        .where(and(eq(analytics.userId, userId), eq(analytics.platform, platform)))
+        .orderBy(desc(analytics.date));
     }
-    return await query.orderBy(desc(analytics.date));
+    return await db.select().from(analytics)
+      .where(eq(analytics.userId, userId))
+      .orderBy(desc(analytics.date));
   }
 
   async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {

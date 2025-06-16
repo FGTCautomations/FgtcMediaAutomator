@@ -15,6 +15,8 @@ import { openaiService } from "./openai-service";
 import { authService } from "./auth-service";
 import { DatabaseStorage } from "./db-storage";
 import { registerOAuthRoutes } from "./oauth-handlers";
+import { initializeAuth, requireAuth } from "./auth";
+import { registerAuthRoutes } from "./auth-routes";
 
 // Use memory storage for MVP to avoid database connection issues
 const storageInstance = storage;
