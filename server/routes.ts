@@ -7,30 +7,15 @@ import { openaiService } from "./openai-service";
 import { authService } from "./auth-service";
 import { DatabaseStorage } from "./db-storage";
 
-// Use database storage in production or memory storage for development
-const storageInstance = process.env.DATABASE_URL ? new DatabaseStorage() : storage;
+// Use memory storage for MVP to avoid database connection issues
+const storageInstance = storage;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const DEFAULT_USER_ID = 1; // For MVP, we'll use a single user
 
-  // Authentication middleware
-  const authenticateToken = async (req: any, res: any, next: any) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      req.userId = DEFAULT_USER_ID; // Fallback for development
-      return next();
-    }
-
-    const decoded = authService.verifyToken(token);
-    if (decoded) {
-      // Get user from database using supabaseId
-      const user = await storageInstance.getUserBySupabaseId(decoded.userId);
-      req.userId = user?.id || DEFAULT_USER_ID;
-    } else {
-      req.userId = DEFAULT_USER_ID;
-    }
+  // Authentication middleware - simplified for MVP
+  const authenticateToken = (req: any, res: any, next: any) => {
+    req.userId = DEFAULT_USER_ID; // Use default user for MVP
     next();
   };
 
