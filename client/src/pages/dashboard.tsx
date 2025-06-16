@@ -1,5 +1,4 @@
-import AppLayout from "@/components/layout/app-layout";
-import Header from "@/components/layout/header";
+
 import QuickActions from "@/components/dashboard/quick-actions";
 import AnalyticsOverview from "@/components/dashboard/analytics-overview";
 import RecentActivity from "@/components/dashboard/recent-activity";

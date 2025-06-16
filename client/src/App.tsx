@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ErrorBoundary } from "@/components/feedback/error-boundary";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import AppLayout from "@/components/layout/app-layout";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
@@ -39,16 +40,19 @@ function Router() {
         
         {/* Protected routes - available when logged in */}
         {user ? (
-          <>
-            <Route path="/" component={Dashboard} />
-            <Route path="/calendar" component={Calendar} />
-            <Route path="/compose" component={Compose} />
-            <Route path="/analytics" component={Analytics} />
-            <Route path="/automations" component={Automations} />
-            <Route path="/content-library" component={ContentLibrary} />
-            <Route path="/content-management" component={ContentManagement} />
-            <Route path="/team" component={Team} />
-          </>
+          <AppLayout>
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/calendar" component={Calendar} />
+              <Route path="/compose" component={Compose} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/automations" component={Automations} />
+              <Route path="/content-library" component={ContentLibrary} />
+              <Route path="/content-management" component={ContentManagement} />
+              <Route path="/team" component={Team} />
+              <Route component={NotFound} />
+            </Switch>
+          </AppLayout>
         ) : (
           /* Redirect to login if not authenticated */
           <Route path="/" component={LoginPage} />
