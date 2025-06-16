@@ -32,7 +32,7 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  getUserBySupabaseId(supabaseId: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
 
@@ -124,7 +124,8 @@ export class MemStorage implements IStorage {
       email: "john@example.com",
       name: "John Doe",
       avatar: null,
-      supabaseId: null,
+      password: null,
+      googleId: null,
       role: "admin",
       currentWorkspaceId: null,
       createdAt: new Date(),

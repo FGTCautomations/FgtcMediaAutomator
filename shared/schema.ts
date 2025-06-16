@@ -1,13 +1,25 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Session storage table for authentication
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)]
+);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   avatar: text("avatar"),
-  supabaseId: text("supabase_id").unique(),
+  password: text("password"), // For email authentication
+  googleId: text("google_id").unique(), // For Google OAuth
   role: text("role").default("team_member").notNull(), // admin, team_member, client
   currentWorkspaceId: integer("current_workspace_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
