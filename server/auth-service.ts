@@ -23,6 +23,8 @@ export class AuthService {
         name,
         avatar: null,
         supabaseId: null, // Not using Supabase for MVP
+        role: "team_member",
+        currentWorkspaceId: null,
         createdAt: new Date(),
       };
 

@@ -64,6 +64,22 @@ export interface IStorage {
   getContentLibrary(userId: number): Promise<ContentLibrary[]>;
   createContentLibraryItem(item: InsertContentLibrary): Promise<ContentLibrary>;
 
+  // Content Categories
+  getContentCategories(userId: number): Promise<ContentCategory[]>;
+  createContentCategory(category: InsertContentCategory): Promise<ContentCategory>;
+  updateContentCategory(id: number, updates: Partial<ContentCategory>): Promise<ContentCategory | undefined>;
+  deleteContentCategory(id: number): Promise<void>;
+
+  // Post Comments
+  getPostComments(postId: number): Promise<PostComment[]>;
+  createPostComment(comment: InsertPostComment): Promise<PostComment>;
+
+  // Media Library
+  getMediaLibrary(userId: number): Promise<MediaLibrary[]>;
+  createMediaLibraryItem(item: InsertMediaLibrary): Promise<MediaLibrary>;
+  updateMediaLibraryItem(id: number, updates: Partial<MediaLibrary>): Promise<MediaLibrary | undefined>;
+  deleteMediaLibraryItem(id: number): Promise<void>;
+
   // Activities
   getRecentActivities(userId: number, limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;

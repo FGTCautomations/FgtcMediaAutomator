@@ -366,6 +366,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Content Categories endpoints
+  app.get("/api/content-categories", async (req: any, res) => {
+    try {
+      const categories = await storageInstance.getContentCategories(req.userId);
+      res.json(categories);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch content categories" });
+    }
+  });
+
+  app.post("/api/content-categories", async (req: any, res) => {
+    try {
+      const categoryData = insertContentCategorySchema.parse({
+        ...req.body,
+        userId: req.userId,
+      });
+      const category = await storageInstance.createContentCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create content category" });
+    }
+  });
+
+  app.patch("/api/content-categories/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const category = await storageInstance.updateContentCategory(parseInt(id), updates);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update content category" });
+    }
+  });
+
+  app.delete("/api/content-categories/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storageInstance.deleteContentCategory(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete content category" });
+    }
+  });
+
+  // Media Library endpoints
+  app.get("/api/media-library", async (req: any, res) => {
+    try {
+      const media = await storageInstance.getMediaLibrary(req.userId);
+      res.json(media);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch media library" });
+    }
+  });
+
+  app.post("/api/media-library", async (req: any, res) => {
+    try {
+      const mediaData = insertMediaLibrarySchema.parse({
+        ...req.body,
+        userId: req.userId,
+      });
+      const media = await storageInstance.createMediaLibraryItem(mediaData);
+      res.status(201).json(media);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create media item" });
+    }
+  });
+
+  app.patch("/api/media-library/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const media = await storageInstance.updateMediaLibraryItem(parseInt(id), updates);
+      if (!media) {
+        return res.status(404).json({ error: "Media item not found" });
+      }
+      res.json(media);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update media item" });
+    }
+  });
+
+  app.delete("/api/media-library/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storageInstance.deleteMediaLibraryItem(parseInt(id));
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete media item" });
+    }
+  });
+
+  // Post Comments endpoints
+  app.get("/api/posts/:postId/comments", async (req: any, res) => {
+    try {
+      const { postId } = req.params;
+      const comments = await storageInstance.getPostComments(parseInt(postId));
+      res.json(comments);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch post comments" });
+    }
+  });
+
+  app.post("/api/posts/:postId/comments", async (req: any, res) => {
+    try {
+      const { postId } = req.params;
+      const commentData = insertPostCommentSchema.parse({
+        ...req.body,
+        postId: parseInt(postId),
+        userId: req.userId,
+      });
+      const comment = await storageInstance.createPostComment(commentData);
+      res.status(201).json(comment);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create comment" });
+    }
+  });
+
   // Register OAuth routes for real social media connections
   registerOAuthRoutes(app);
 
