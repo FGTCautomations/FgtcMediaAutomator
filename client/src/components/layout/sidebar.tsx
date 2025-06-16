@@ -1,9 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { cn, getPlatformIcon, getPlatformColor } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { SocialAccount } from "@shared/schema";
+import DemoOAuthSuccess from "@/components/demo-oauth-success";
+import { apiRequest } from "@/lib/queryClient";
 
 
 const navigationItems = [
@@ -20,9 +22,30 @@ const navigationItems = [
 export default function Sidebar() {
   const [location] = useLocation();
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showDemoSuccess, setShowDemoSuccess] = useState(false);
+  const [demoPlatform, setDemoPlatform] = useState("");
+  const queryClient = useQueryClient();
   
   const socialAccountsQuery = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
+  });
+
+  const createDemoAccountMutation = useMutation({
+    mutationFn: async (platform: string) => {
+      const demoAccount = {
+        platform,
+        username: platform === "linkedin" ? "john.smith" : `demo_${platform}`,
+        isConnected: true,
+        accountType: "business",
+        profilePicture: null,
+        followers: platform === "linkedin" ? 2847 : 1500,
+        posts: platform === "linkedin" ? 156 : 89
+      };
+      return apiRequest("POST", "/api/social-accounts", demoAccount);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/social-accounts"] });
+    },
   });
   
   const socialAccounts = socialAccountsQuery.data || [];
@@ -304,6 +327,18 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Demo OAuth Success Modal */}
+      {showDemoSuccess && (
+        <DemoOAuthSuccess 
+          platform={demoPlatform}
+          onComplete={() => {
+            setShowDemoSuccess(false);
+            setDemoPlatform("");
+            setShowAccountModal(false);
+          }}
+        />
       )}
     </div>
   );
