@@ -231,7 +231,7 @@ export default function Sidebar() {
                         
                         // Use consistent redirect URI that matches setup instructions
                         const redirectUri = `https://5828fbb2-5214-4148-8c4e-a0def6d3c2da-00-e29z17qntw83.riker.replit.dev/auth/callback/${platform.platform}`;
-                        const scope = platform.platform === "linkedin" ? "w_member_social,r_liteprofile,r_organization_social,w_organization_social" :
+                        const scope = platform.platform === "linkedin" ? "r_liteprofile,r_emailaddress" :
                                      platform.platform === "instagram" ? "instagram_basic,instagram_content_publish" :
                                      platform.platform === "twitter" ? "tweet.read,tweet.write,users.read,offline.access" :
                                      platform.platform === "youtube" ? "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube" :
