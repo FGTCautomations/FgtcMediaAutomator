@@ -185,9 +185,9 @@ export default function PostComposer({ isOpen, onClose }: PostComposerProps) {
   };
 
   // Get available platforms from connected accounts
-  const connectedPlatforms = socialAccounts.filter(account => account.isConnected);
-  const availablePlatforms = platforms.filter(platform => 
-    connectedPlatforms.some(account => account.platform === platform.id)
+  const connectedPlatforms = socialAccounts.filter((account: any) => account.isConnected);
+  const availablePlatforms = platforms.filter((platform: any) => 
+    connectedPlatforms.some((account: any) => account.platform === platform.id)
   );
 
   if (!isOpen) return null;
@@ -220,7 +220,7 @@ export default function PostComposer({ isOpen, onClose }: PostComposerProps) {
             {availablePlatforms.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {availablePlatforms.map((platform) => {
-                  const account = connectedPlatforms.find(acc => acc.platform === platform.id);
+                  const account = connectedPlatforms.find((acc: any) => acc.platform === platform.id);
                   return (
                     <Button
                       key={platform.id}
