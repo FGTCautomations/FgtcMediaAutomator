@@ -1,4 +1,4 @@
-import Sidebar from "@/components/layout/sidebar";
+import AppLayout from "@/components/layout/app-layout";
 import Header from "@/components/layout/header";
 import QuickActions from "@/components/dashboard/quick-actions";
 import AnalyticsOverview from "@/components/dashboard/analytics-overview";
@@ -13,10 +13,8 @@ export default function Dashboard() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <AppLayout>
+      <div className="flex flex-col h-full overflow-hidden">
         <Header 
           title="Dashboard" 
           subtitle="Welcome back! Here's what's happening with your social media." 
@@ -39,12 +37,12 @@ export default function Dashboard() {
           <TopContent />
           <ActiveAutomations />
         </main>
+        
+        <PostComposer 
+          isOpen={isComposerOpen} 
+          onClose={() => setIsComposerOpen(false)} 
+        />
       </div>
-
-      <PostComposer 
-        isOpen={isComposerOpen} 
-        onClose={() => setIsComposerOpen(false)} 
-      />
-    </div>
+    </AppLayout>
   );
 }

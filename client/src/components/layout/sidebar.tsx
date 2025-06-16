@@ -13,6 +13,7 @@ const navigationItems = [
   { path: "/analytics", label: "Analytics", icon: "fas fa-chart-bar" },
   { path: "/automations", label: "Automations", icon: "fas fa-cog" },
   { path: "/content-library", label: "Content Library", icon: "fas fa-folder" },
+  { path: "/content-management", label: "Content Management", icon: "fas fa-layer-group" },
   { path: "/team", label: "Team", icon: "fas fa-users" },
 ];
 
