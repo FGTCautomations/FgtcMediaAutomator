@@ -38,10 +38,7 @@ export default function CategoriesManager() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, ...data }: any) => {
-      return apiRequest(`/api/content-categories/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/content-categories/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/content-categories"] });
@@ -52,9 +49,7 @@ export default function CategoriesManager() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/content-categories/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/content-categories/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/content-categories"] });

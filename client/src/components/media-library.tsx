@@ -34,9 +34,7 @@ export default function MediaLibraryComponent() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/media-library/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/media-library/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/media-library"] });
@@ -45,10 +43,7 @@ export default function MediaLibraryComponent() {
 
   const updateTagsMutation = useMutation({
     mutationFn: async ({ id, tags }: { id: number; tags: string[] }) => {
-      return apiRequest(`/api/media-library/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ tags }),
-      });
+      return apiRequest("PATCH", `/api/media-library/${id}`, { tags });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/media-library"] });
@@ -73,7 +68,7 @@ export default function MediaLibraryComponent() {
 
   const filteredFiles = mediaFiles.filter((file) => {
     const matchesSearch = file.originalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         file.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (file.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesType = filterType === "all" || 
                        (filterType === "image" && file.mimeType.startsWith("image/")) ||
@@ -246,15 +241,15 @@ export default function MediaLibraryComponent() {
                     {formatFileSize(file.size)}
                   </p>
                   
-                  {file.tags.length > 0 && (
+                  {(file.tags || []).length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {file.tags.slice(0, 2).map((tag) => (
+                      {(file.tags || []).slice(0, 2).map((tag) => (
                         <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
                           {tag}
                         </Badge>
                       ))}
-                      {file.tags.length > 2 && (
-                        <span className="text-xs text-gray-400">+{file.tags.length - 2}</span>
+                      {(file.tags || []).length > 2 && (
+                        <span className="text-xs text-gray-400">+{(file.tags || []).length - 2}</span>
                       )}
                     </div>
                   )}
@@ -325,7 +320,7 @@ export default function MediaLibraryComponent() {
                   <span className="font-medium">Uploaded:</span> {new Date(previewMedia.createdAt).toLocaleDateString()}
                 </div>
                 <div>
-                  <span className="font-medium">Tags:</span> {previewMedia.tags.join(", ") || "None"}
+                  <span className="font-medium">Tags:</span> {(previewMedia.tags || []).join(", ") || "None"}
                 </div>
               </div>
             </div>
