@@ -34,12 +34,10 @@ export default function Sidebar() {
     mutationFn: async (platform: string) => {
       const demoAccount = {
         platform,
-        username: platform === "linkedin" ? "john.smith" : `demo_${platform}`,
-        isConnected: true,
-        accountType: "business",
-        profilePicture: null,
-        followers: platform === "linkedin" ? 2847 : 1500,
-        posts: platform === "linkedin" ? 156 : 89
+        accountName: platform === "linkedin" ? "John Smith" : `Demo ${platform.charAt(0).toUpperCase() + platform.slice(1)}`,
+        accountId: platform === "linkedin" ? "john-smith-marketing" : `demo_${platform}_123`,
+        accessToken: `demo_token_${platform}_${Date.now()}`,
+        isConnected: true
       };
       return apiRequest("POST", "/api/social-accounts", demoAccount);
     },
