@@ -1,4 +1,3 @@
-
 import QuickActions from "@/components/dashboard/quick-actions";
 import AnalyticsOverview from "@/components/dashboard/analytics-overview";
 import RecentActivity from "@/components/dashboard/recent-activity";
@@ -16,59 +15,48 @@ export default function Dashboard() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
 
   return (
-    <AppLayout>
-      <div className="flex flex-col h-full overflow-hidden">
-        <Header 
-          title="Dashboard" 
-          subtitle="Welcome back! Here's what's happening with your social media." 
-        />
+    <div className="space-y-6">
+      <QuickActions />
+      
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled Posts</TabsTrigger>
+          <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
+          <TabsTrigger value="accounts">Social Accounts</TabsTrigger>
+        </TabsList>
         
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <QuickActions />
-          
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="accounts">Accounts</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="lg:col-span-2">
-                  <AnalyticsOverview />
-                </div>
-                
-                <div className="space-y-4 sm:space-y-6">
-                  <RecentActivity />
-                  <UpcomingPosts />
-                </div>
-              </div>
-
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 xl:col-span-2 space-y-6">
+              <AnalyticsOverview />
+              <RecentActivity />
+            </div>
+            <div className="space-y-6">
+              <UpcomingPosts />
               <TopContent />
               <ActiveAutomations />
-            </TabsContent>
-            
-            <TabsContent value="posts" className="mt-6">
-              <ScheduledPostsManager />
-            </TabsContent>
-            
-            <TabsContent value="analytics" className="mt-6">
-              <LiveAnalytics />
-            </TabsContent>
-            
-            <TabsContent value="accounts" className="mt-6">
-              <AccountManager />
-            </TabsContent>
-          </Tabs>
-        </main>
+            </div>
+          </div>
+        </TabsContent>
         
-        <PostComposer 
-          isOpen={isComposerOpen} 
-          onClose={() => setIsComposerOpen(false)} 
-        />
-      </div>
-    </AppLayout>
+        <TabsContent value="scheduled" className="mt-6">
+          <ScheduledPostsManager />
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="mt-6">
+          <LiveAnalytics />
+        </TabsContent>
+        
+        <TabsContent value="accounts" className="mt-6">
+          <AccountManager />
+        </TabsContent>
+      </Tabs>
+      
+      <PostComposer 
+        isOpen={isComposerOpen} 
+        onClose={() => setIsComposerOpen(false)} 
+      />
+    </div>
   );
 }
