@@ -187,16 +187,17 @@ export default function Calendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Content Calendar</h1>
-          <div className="flex items-center space-x-4">
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Content Calendar</h1>
+          <div className="flex items-center">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-full sm:w-auto">
               <Button
                 variant={view === "week" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setView("week")}
+                className="flex-1 sm:flex-none"
               >
                 Week
               </Button>
@@ -204,6 +205,7 @@ export default function Calendar() {
                 variant={view === "month" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setView("month")}
+                className="flex-1 sm:flex-none"
               >
                 Month
               </Button>
@@ -212,18 +214,20 @@ export default function Calendar() {
         </div>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => view === "month" ? navigateMonth("prev") : navigateWeek("prev")}
+                className="order-1 sm:order-none"
               >
                 <i className="fas fa-chevron-left mr-2"></i>
-                {view === "month" ? "Previous Month" : "Previous Week"}
+                <span className="hidden sm:inline">{view === "month" ? "Previous Month" : "Previous Week"}</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
               
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white text-center order-0 sm:order-none">
                 {currentDate.toLocaleDateString('en-US', { 
                   month: 'long', 
                   year: 'numeric',
@@ -235,17 +239,20 @@ export default function Calendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => view === "month" ? navigateMonth("next") : navigateWeek("next")}
+                className="order-2 sm:order-none"
               >
-                {view === "month" ? "Next Month" : "Next Week"}
+                <span className="hidden sm:inline">{view === "month" ? "Next Month" : "Next Week"}</span>
+                <span className="sm:hidden">Next</span>
                 <i className="fas fa-chevron-right ml-2"></i>
               </Button>
             </div>
 
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
+            <div className="grid grid-cols-7 gap-1 mb-2 sm:mb-4">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="p-2 text-center font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  {day}
+                <div key={day} className="p-1 sm:p-2 text-center font-medium text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 text-xs sm:text-sm">
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.substring(0, 1)}</span>
                 </div>
               ))}
             </div>
@@ -255,7 +262,7 @@ export default function Calendar() {
                 <div
                   key={index}
                   className={`
-                    min-h-[120px] p-2 border border-gray-200 dark:border-gray-700 
+                    min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 border border-gray-200 dark:border-gray-700 
                     ${date ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-900"}
                     ${date && date.toDateString() === new Date().toDateString() ? "ring-2 ring-blue-500" : ""}
                     ${date ? "hover:bg-gray-50 dark:hover:bg-gray-700" : ""}

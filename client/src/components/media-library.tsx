@@ -99,11 +99,11 @@ export default function MediaLibraryComponent() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Media Library</h2>
-        <div className="flex items-center space-x-4">
-          <Button onClick={() => fileInputRef.current?.click()}>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">Media Library</h2>
+        <div className="flex items-center">
+          <Button onClick={() => fileInputRef.current?.click()} className="w-full sm:w-auto">
             <i className="fas fa-upload mr-2"></i>
             Upload Files
           </Button>
@@ -128,15 +128,17 @@ export default function MediaLibraryComponent() {
             className="w-full"
           />
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-1 sm:space-x-2 overflow-x-auto">
           {["all", "image", "video"].map((type) => (
             <Button
               key={type}
               variant={filterType === type ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterType(type as any)}
+              className="whitespace-nowrap flex-shrink-0"
             >
-              {type === "all" ? "All Files" : `${type.charAt(0).toUpperCase() + type.slice(1)}s`}
+              <span className="hidden sm:inline">{type === "all" ? "All Files" : `${type.charAt(0).toUpperCase() + type.slice(1)}s`}</span>
+              <span className="sm:hidden">{type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}</span>
             </Button>
           ))}
         </div>
