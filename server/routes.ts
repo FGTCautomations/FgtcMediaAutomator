@@ -499,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/media-library/upload", authenticateToken, upload.single('file'), async (req: any, res) => {
+  app.post("/api/media-library/upload", upload.single('file'), authenticateToken, async (req: any, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {

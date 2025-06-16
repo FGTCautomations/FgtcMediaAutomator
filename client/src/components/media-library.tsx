@@ -68,15 +68,8 @@ export default function MediaLibraryComponent() {
     if (!files) return;
 
     Array.from(files).forEach((file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      uploadMutation.mutate(formData);
+      uploadMutation.mutate(file);
     });
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const filteredFiles = mediaFiles.filter((file) => {
