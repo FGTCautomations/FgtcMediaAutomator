@@ -37,9 +37,9 @@ export default function UpcomingPosts() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Posts</h3>
           <Link href="/calendar">
-            <a className="text-primary-600 dark:text-primary-400 text-sm font-medium hover:text-primary-700 dark:hover:text-primary-300">
+            <div className="text-primary-600 dark:text-primary-400 text-sm font-medium hover:text-primary-700 dark:hover:text-primary-300 cursor-pointer">
               <i className="fas fa-calendar-alt mr-1"></i>Calendar
-            </a>
+            </div>
           </Link>
         </div>
         <div className="space-y-4">
