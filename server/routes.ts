@@ -2,7 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertPostSchema, insertAutomationSchema, insertSocialAccountSchema, insertUserSchema } from "@shared/schema";
+import { 
+  insertPostSchema, 
+  insertAutomationSchema, 
+  insertSocialAccountSchema, 
+  insertUserSchema,
+  insertContentCategorySchema,
+  insertPostCommentSchema,
+  insertMediaLibrarySchema
+} from "@shared/schema";
 import { openaiService } from "./openai-service";
 import { authService } from "./auth-service";
 import { DatabaseStorage } from "./db-storage";

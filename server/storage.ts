@@ -18,6 +18,12 @@ import {
   type InsertAnalytics,
   type ContentLibrary,
   type InsertContentLibrary,
+  type ContentCategory,
+  type InsertContentCategory,
+  type PostComment,
+  type InsertPostComment,
+  type MediaLibrary,
+  type InsertMediaLibrary,
   type Activity,
   type InsertActivity,
 } from "@shared/schema";
@@ -92,6 +98,9 @@ export class MemStorage implements IStorage {
   private automations: Map<number, Automation> = new Map();
   private analytics: Map<number, Analytics> = new Map();
   private contentLibrary: Map<number, ContentLibrary> = new Map();
+  private contentCategories: Map<number, ContentCategory> = new Map();
+  private postComments: Map<number, PostComment> = new Map();
+  private mediaLibrary: Map<number, MediaLibrary> = new Map();
   private activities: Map<number, Activity> = new Map();
   private currentUserId = 1;
   private currentSocialAccountId = 1;
@@ -99,6 +108,9 @@ export class MemStorage implements IStorage {
   private currentAutomationId = 1;
   private currentAnalyticsId = 1;
   private currentContentLibraryId = 1;
+  private currentContentCategoryId = 1;
+  private currentPostCommentId = 1;
+  private currentMediaLibraryId = 1;
   private currentActivityId = 1;
 
   constructor() {
@@ -517,6 +529,82 @@ export class MemStorage implements IStorage {
     };
     this.activities.set(id, activity);
     return activity;
+  }
+
+  // Content Categories
+  async getContentCategories(userId: number): Promise<ContentCategory[]> {
+    return Array.from(this.contentCategories.values())
+      .filter(category => category.userId === userId);
+  }
+
+  async createContentCategory(insertCategory: InsertContentCategory): Promise<ContentCategory> {
+    const category: ContentCategory = {
+      id: this.currentContentCategoryId++,
+      ...insertCategory,
+      createdAt: new Date(),
+    };
+    this.contentCategories.set(category.id, category);
+    return category;
+  }
+
+  async updateContentCategory(id: number, updates: Partial<ContentCategory>): Promise<ContentCategory | undefined> {
+    const category = this.contentCategories.get(id);
+    if (!category) return undefined;
+    
+    const updatedCategory = { ...category, ...updates };
+    this.contentCategories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+
+  async deleteContentCategory(id: number): Promise<void> {
+    this.contentCategories.delete(id);
+  }
+
+  // Post Comments
+  async getPostComments(postId: number): Promise<PostComment[]> {
+    return Array.from(this.postComments.values())
+      .filter(comment => comment.postId === postId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async createPostComment(insertComment: InsertPostComment): Promise<PostComment> {
+    const comment: PostComment = {
+      id: this.currentPostCommentId++,
+      ...insertComment,
+      createdAt: new Date(),
+    };
+    this.postComments.set(comment.id, comment);
+    return comment;
+  }
+
+  // Media Library
+  async getMediaLibrary(userId: number): Promise<MediaLibrary[]> {
+    return Array.from(this.mediaLibrary.values())
+      .filter(media => media.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async createMediaLibraryItem(insertMedia: InsertMediaLibrary): Promise<MediaLibrary> {
+    const media: MediaLibrary = {
+      id: this.currentMediaLibraryId++,
+      ...insertMedia,
+      createdAt: new Date(),
+    };
+    this.mediaLibrary.set(media.id, media);
+    return media;
+  }
+
+  async updateMediaLibraryItem(id: number, updates: Partial<MediaLibrary>): Promise<MediaLibrary | undefined> {
+    const media = this.mediaLibrary.get(id);
+    if (!media) return undefined;
+    
+    const updatedMedia = { ...media, ...updates };
+    this.mediaLibrary.set(id, updatedMedia);
+    return updatedMedia;
+  }
+
+  async deleteMediaLibraryItem(id: number): Promise<void> {
+    this.mediaLibrary.delete(id);
   }
 }
 
