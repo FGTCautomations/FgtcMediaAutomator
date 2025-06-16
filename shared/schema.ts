@@ -8,7 +8,27 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   avatar: text("avatar"),
   supabaseId: text("supabase_id").unique(),
+  role: text("role").default("team_member").notNull(), // admin, team_member, client
+  currentWorkspaceId: integer("current_workspace_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const workspaces = pgTable("workspaces", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique().notNull(),
+  ownerId: integer("owner_id").notNull().references(() => users.id),
+  settings: jsonb("settings").default("{}"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const workspaceMembers = pgTable("workspace_members", {
+  id: serial("id").primaryKey(),
+  workspaceId: integer("workspace_id").notNull().references(() => workspaces.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  role: text("role").default("member").notNull(), // owner, admin, member, viewer
+  invitedAt: timestamp("invited_at").defaultNow().notNull(),
+  joinedAt: timestamp("joined_at"),
 });
 
 export const socialAccounts = pgTable("social_accounts", {
@@ -22,16 +42,52 @@ export const socialAccounts = pgTable("social_accounts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const contentCategories = pgTable("content_categories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default("#3B82F6"),
+  autoQueueRules: jsonb("auto_queue_rules").default("{}"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const posts = pgTable("posts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  categoryId: integer("category_id").references(() => contentCategories.id),
+  assignedToId: integer("assigned_to_id").references(() => users.id),
   content: text("content").notNull(),
   media: jsonb("media"), // array of media URLs
   platforms: text("platforms").array().notNull(), // array of platform names
-  status: text("status").notNull().default("draft"), // draft, scheduled, published, failed
+  status: text("status").notNull().default("draft"), // draft, review, approved, scheduled, published, failed
   scheduledAt: timestamp("scheduled_at"),
   publishedAt: timestamp("published_at"),
+  approvedAt: timestamp("approved_at"),
+  approvedById: integer("approved_by_id").references(() => users.id),
   engagement: jsonb("engagement"), // likes, shares, comments, reach
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const postComments = pgTable("post_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => posts.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  isInternal: boolean("is_internal").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const mediaLibrary = pgTable("media_library", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(),
+  url: text("url").notNull(),
+  tags: text("tags").array().default([]),
+  alt: text("alt"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -122,9 +178,49 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true,
 });
 
+export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWorkspaceMemberSchema = createInsertSchema(workspaceMembers).omit({
+  id: true,
+  invitedAt: true,
+});
+
+export const insertContentCategorySchema = createInsertSchema(contentCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPostCommentSchema = createInsertSchema(postComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMediaLibrarySchema = createInsertSchema(mediaLibrary).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
+export type Workspace = typeof workspaces.$inferSelect;
+
+export type InsertWorkspaceMember = z.infer<typeof insertWorkspaceMemberSchema>;
+export type WorkspaceMember = typeof workspaceMembers.$inferSelect;
+
+export type InsertContentCategory = z.infer<typeof insertContentCategorySchema>;
+export type ContentCategory = typeof contentCategories.$inferSelect;
+
+export type InsertPostComment = z.infer<typeof insertPostCommentSchema>;
+export type PostComment = typeof postComments.$inferSelect;
+
+export type InsertMediaLibrary = z.infer<typeof insertMediaLibrarySchema>;
+export type MediaLibrary = typeof mediaLibrary.$inferSelect;
 
 export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
 export type SocialAccount = typeof socialAccounts.$inferSelect;

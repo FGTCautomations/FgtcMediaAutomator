@@ -1,0 +1,120 @@
+I’m building a social media management platform similar to ContentStudio using Replit as the front-end environment and Supabase for database and authentication. The UI has already been created, but I now need the core functionality added. Please implement the following features using React (frontend), Supabase (backend + auth), and PostgreSQL (Supabase DB):
+
+✅ Core Functionalities to Build:
+
+1. User Authentication & Roles
+
+
+
+Use Supabase Auth (email/password + social logins)
+
+Support multiple roles: Admin, Team Member, Client
+
+Allow workspace creation per user (multi-tenant setup)
+
+
+2. Social Media Account Integration
+
+
+
+OAuth-based connection for Facebook, LinkedIn, Instagram, X (Twitter)
+
+Store connected account tokens securely
+
+List connected accounts per workspace
+
+
+3. Content Calendar
+
+
+
+Drag-and-drop visual calendar (by day/week/month)
+
+Show scheduled posts with status (Draft, Scheduled, Posted)
+
+Filter by social channel, content category, or user
+
+
+4. Post Scheduling
+
+
+
+Post creation modal: channel, image/video, text, caption, publish time
+
+Schedule posts via cron job or Supabase scheduled functions
+
+Store scheduled content in Supabase with status updates
+
+
+5. Content Categories & Automation
+
+
+
+Allow creating content categories (e.g., Tips, Quotes, Tutorials)
+
+Auto-queue or recycle content from each category based on rules
+
+Optional: RSS feed import for curated content
+
+
+6. Team Collaboration
+
+
+
+Assign posts to team members
+
+Add post comments + internal notes
+
+Approval workflows: Draft → Review → Approved → Scheduled
+
+
+7. Analytics Dashboard
+
+
+
+Basic analytics: post reach, engagement, top-performing content (mock data or fetch from social APIs)
+
+Charts with filters (date range, platform, category)
+
+
+8. Media Library
+
+
+
+Upload & store images/videos to Supabase storage
+
+Tag & organize by workspace
+
+
+9. Settings & Profile
+
+
+
+Update user info, notification preferences
+
+Manage workspaces, billing (optional)
+
+
+🔧 Tech Requirements
+
+Use Supabase for DB/auth/storage
+
+Frontend in React (no Next.js)
+
+Replit-compatible setup (client + server folder OK)
+
+Clear API folder structure with Supabase calls
+
+Save each module with comments for maintainability
+
+
+🧪 Bonus (Optional if time permits):
+
+AI caption generator (OpenAI API)
+
+Best time to post (suggestion system)
+
+Integration with Make.com or Zapier
+
+
+Please generate the backend + frontend code structure and the necessary Supabase schema in SQL to support this. Focus on modularity and clarity.

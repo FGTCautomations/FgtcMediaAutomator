@@ -97,6 +97,8 @@ export class MemStorage implements IStorage {
       name: "John Doe",
       avatar: null,
       supabaseId: null,
+      role: "admin",
+      currentWorkspaceId: null,
       createdAt: new Date(),
     };
     this.users.set(1, user);
@@ -139,12 +141,16 @@ export class MemStorage implements IStorage {
       const postData: Post = {
         id: index + 1,
         userId: 1,
+        categoryId: null,
+        assignedToId: null,
         content: post.content,
         media: null,
         platforms: post.platforms,
         status: post.status,
         scheduledAt: post.scheduledAt || null,
         publishedAt: post.publishedAt || null,
+        approvedAt: null,
+        approvedById: null,
         engagement: post.engagement || null,
         createdAt: new Date(),
       };
