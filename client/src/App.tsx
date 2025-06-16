@@ -10,6 +10,7 @@ import Compose from "@/pages/compose";
 import Analytics from "@/pages/analytics";
 import Automations from "@/pages/automations";
 import ContentLibrary from "@/pages/content-library";
+import ContentManagement from "@/pages/content-management";
 import Team from "@/pages/team";
 import NotFound from "@/pages/not-found";
 
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/analytics" component={Analytics} />
       <Route path="/automations" component={Automations} />
       <Route path="/content-library" component={ContentLibrary} />
+      <Route path="/content-management" component={ContentManagement} />
       <Route path="/team" component={Team} />
       <Route component={NotFound} />
     </Switch>
