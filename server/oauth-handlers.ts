@@ -105,7 +105,11 @@ async function getUserInfo(platform: string, accessToken: string) {
 
 function getSetupInstructions(platform: string, req: any): string {
   const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
-  const redirectUri = `${req.protocol}://${req.get('host')}/auth/callback/${platform}`;
+  
+  // Use Replit domain if available, otherwise fall back to request host
+  const host = process.env.REPLIT_DOMAINS || req.get('host');
+  const protocol = process.env.REPLIT_DOMAINS ? 'https' : req.protocol;
+  const redirectUri = `${protocol}://${host}/auth/callback/${platform}`;
   
   const platformConfig = {
     linkedin: {
@@ -371,7 +375,9 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       }
 
       // Exchange authorization code for access token
-      const redirectUri = `${req.protocol}://${req.get('host')}/auth/callback/${platform}`;
+      const host = process.env.REPLIT_DOMAINS || req.get('host');
+      const protocol = process.env.REPLIT_DOMAINS ? 'https' : req.protocol;
+      const redirectUri = `${protocol}://${host}/auth/callback/${platform}`;
       const tokenData = await exchangeCodeForToken(platform, code as string, redirectUri);
       
       // Get user info from the platform
