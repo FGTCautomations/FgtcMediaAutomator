@@ -254,7 +254,16 @@ export default function PostComposer({ isOpen, onClose }: PostComposerProps) {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                   Connect your social media accounts to start posting
                 </p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    // Close the composer and switch to accounts tab
+                    onClose();
+                    const event = new CustomEvent('switchToAccountsTab');
+                    window.dispatchEvent(event);
+                  }}
+                >
                   <i className="fas fa-plus mr-2"></i>Connect Accounts
                 </Button>
               </div>

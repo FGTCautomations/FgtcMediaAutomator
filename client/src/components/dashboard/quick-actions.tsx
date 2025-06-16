@@ -17,7 +17,7 @@ const quickActions = [
     color: "text-green-500",
   },
   {
-    href: "/automations",
+    href: "/create-automation",
     icon: "fas fa-robot",
     title: "Create Automation",
     description: "Set up workflows",

@@ -445,6 +445,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/media-library/upload", async (req: any, res) => {
+    try {
+      // Since we don't have actual file storage, we'll simulate file upload
+      // In a real app, this would handle file uploads to cloud storage
+      const fileName = `uploaded_${Date.now()}.jpg`;
+      const fileUrl = `https://picsum.photos/800/600?random=${Date.now()}`;
+      
+      const mediaData = insertMediaLibrarySchema.parse({
+        url: fileUrl,
+        originalName: fileName,
+        mimeType: "image/jpeg",
+        size: Math.floor(Math.random() * 2000000) + 100000, // Random size between 100KB-2MB
+        alt: fileName,
+        tags: [],
+        userId: req.userId,
+      });
+      
+      const media = await storageInstance.createMediaLibraryItem(mediaData);
+      res.status(201).json(media);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
   app.patch("/api/media-library/:id", async (req: any, res) => {
     try {
       const { id } = req.params;

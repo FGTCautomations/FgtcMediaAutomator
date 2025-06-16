@@ -17,6 +17,7 @@ import Analytics from "@/pages/analytics";
 import Automations from "@/pages/automations";
 import ContentLibrary from "@/pages/content-library";
 import ContentManagement from "@/pages/content-management";
+import CreateAutomation from "@/pages/create-automation";
 import Team from "@/pages/team";
 import NotFound from "@/pages/not-found";
 
@@ -47,6 +48,7 @@ function Router() {
               <Route path="/compose" component={Compose} />
               <Route path="/analytics" component={Analytics} />
               <Route path="/automations" component={Automations} />
+              <Route path="/create-automation" component={CreateAutomation} />
               <Route path="/content-library" component={ContentLibrary} />
               <Route path="/content-management" component={ContentManagement} />
               <Route path="/team" component={Team} />
