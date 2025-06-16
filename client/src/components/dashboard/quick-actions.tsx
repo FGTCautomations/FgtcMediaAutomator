@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { useState } from "react";
 
 const quickActions = [
   {
@@ -29,9 +30,28 @@ const quickActions = [
     description: "Check performance",
     color: "text-blue-500",
   },
+  {
+    action: "add-account",
+    icon: "fas fa-plus-circle",
+    title: "Add Account",
+    description: "Connect social media",
+    color: "text-purple-500",
+  },
 ];
 
 export default function QuickActions() {
+  const handleAddAccount = () => {
+    // Trigger the social accounts tab in dashboard
+    const event = new CustomEvent('switchToAccountsTab');
+    window.dispatchEvent(event);
+  };
+
+  const handleActionClick = (action: any) => {
+    if (action.action === 'add-account') {
+      handleAddAccount();
+    }
+  };
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -40,16 +60,32 @@ export default function QuickActions() {
           View All
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {quickActions.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow text-left block cursor-pointer">
-              <i className={`${action.icon} ${action.color} text-xl mb-2 block`}></i>
-              <h3 className="font-medium text-gray-900 dark:text-white">{action.title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
-            </div>
-          </Link>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {quickActions.map((action, index) => {
+          if (action.href) {
+            return (
+              <Link key={`action-${index}`} href={action.href}>
+                <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow text-left block cursor-pointer">
+                  <i className={`${action.icon} ${action.color} text-xl mb-2 block`}></i>
+                  <h3 className="font-medium text-gray-900 dark:text-white">{action.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
+                </div>
+              </Link>
+            );
+          } else {
+            return (
+              <div 
+                key={`action-${index}`}
+                onClick={() => handleActionClick(action)}
+                className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow text-left block cursor-pointer"
+              >
+                <i className={`${action.icon} ${action.color} text-xl mb-2 block`}></i>
+                <h3 className="font-medium text-gray-900 dark:text-white">{action.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
+              </div>
+            );
+          }
+        })}
       </div>
     </div>
   );
