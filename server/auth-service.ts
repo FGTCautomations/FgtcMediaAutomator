@@ -22,7 +22,8 @@ export class AuthService {
         email,
         name,
         avatar: null,
-        supabaseId: null, // Not using Supabase for MVP
+        password: hashedPassword,
+        googleId: null,
         role: "team_member",
         currentWorkspaceId: null,
         createdAt: new Date(),
