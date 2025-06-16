@@ -2,7 +2,9 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { cn, getPlatformIcon, getPlatformColor } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import type { SocialAccount } from "@shared/schema";
+import SocialAccountModal from "@/components/modals/social-account-modal";
 
 const navigationItems = [
   { path: "/", label: "Dashboard", icon: "fas fa-chart-line" },
@@ -16,6 +18,7 @@ const navigationItems = [
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const [showAccountModal, setShowAccountModal] = useState(false);
   
   const { data: socialAccounts = [] } = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
@@ -96,11 +99,17 @@ export default function Sidebar() {
           variant="outline"
           size="sm"
           className="w-full mt-3 text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+          onClick={() => setShowAccountModal(true)}
         >
           <i className="fas fa-plus mr-2"></i>
           Add Account
         </Button>
       </div>
+
+      <SocialAccountModal
+        isOpen={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+      />
     </div>
   );
 }
