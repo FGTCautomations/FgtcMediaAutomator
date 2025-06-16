@@ -40,21 +40,23 @@ export default function SignupPage() {
     }
   }, [isAuthenticated, setLocation]);
 
-  const onSubmit = async (data: SignupForm) => {
-    try {
-      await signup(data);
-      toast({
-        title: "Account created",
-        description: "Welcome to your social media management platform",
-      });
-      setLocation("/");
-    } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: signupError?.message || "Failed to create account",
-        variant: "destructive",
-      });
-    }
+  const onSubmit = (data: SignupForm) => {
+    signup(data, {
+      onSuccess: () => {
+        toast({
+          title: "Account created",
+          description: "Welcome to your social media management platform",
+        });
+        setLocation("/");
+      },
+      onError: (error) => {
+        toast({
+          title: "Signup failed",
+          description: error.message || "Failed to create account",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
