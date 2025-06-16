@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { ErrorBoundary } from "@/components/feedback/error-boundary";
 import AuthWrapper from "@/components/auth/auth-wrapper";
 import Dashboard from "@/pages/dashboard";
 import Calendar from "@/pages/calendar";
@@ -17,19 +18,21 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <AuthWrapper>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/calendar" component={Calendar} />
-        <Route path="/compose" component={Compose} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/automations" component={Automations} />
-        <Route path="/content-library" component={ContentLibrary} />
-        <Route path="/content-management" component={ContentManagement} />
-        <Route path="/team" component={Team} />
-        <Route component={NotFound} />
-      </Switch>
-    </AuthWrapper>
+    <ErrorBoundary>
+      <AuthWrapper>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/calendar" component={Calendar} />
+          <Route path="/compose" component={Compose} />
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/automations" component={Automations} />
+          <Route path="/content-library" component={ContentLibrary} />
+          <Route path="/content-management" component={ContentManagement} />
+          <Route path="/team" component={Team} />
+          <Route component={NotFound} />
+        </Switch>
+      </AuthWrapper>
+    </ErrorBoundary>
   );
 }
 
