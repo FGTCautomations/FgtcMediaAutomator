@@ -89,7 +89,7 @@
   }
   
   .sidebar-nav-item.active {
-    @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+    @apply bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400;
   }
   
   .platform-facebook {

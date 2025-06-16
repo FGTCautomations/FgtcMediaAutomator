@@ -295,6 +295,7 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      avatar: insertUser.avatar || null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -310,6 +311,8 @@ export class MemStorage implements IStorage {
     const account: SocialAccount = {
       ...insertAccount,
       id,
+      accessToken: insertAccount.accessToken || null,
+      isConnected: insertAccount.isConnected ?? true,
       createdAt: new Date(),
     };
     this.socialAccounts.set(id, account);
@@ -338,6 +341,10 @@ export class MemStorage implements IStorage {
     const post: Post = {
       ...insertPost,
       id,
+      media: insertPost.media || null,
+      status: insertPost.status || "draft",
+      scheduledAt: insertPost.scheduledAt || null,
+      engagement: insertPost.engagement || null,
       createdAt: new Date(),
       publishedAt: null,
     };
@@ -380,6 +387,9 @@ export class MemStorage implements IStorage {
     const automation: Automation = {
       ...insertAutomation,
       id,
+      description: insertAutomation.description || null,
+      isActive: insertAutomation.isActive ?? true,
+      nextRun: insertAutomation.nextRun || null,
       triggerCount: 0,
       lastRun: null,
       createdAt: new Date(),
@@ -415,6 +425,11 @@ export class MemStorage implements IStorage {
     const analytics: Analytics = {
       ...insertAnalytics,
       id,
+      followers: insertAnalytics.followers || 0,
+      engagement: insertAnalytics.engagement || 0,
+      reach: insertAnalytics.reach || 0,
+      posts: insertAnalytics.posts || 0,
+      metrics: insertAnalytics.metrics || null,
     };
     this.analytics.set(id, analytics);
     return analytics;
@@ -451,6 +466,12 @@ export class MemStorage implements IStorage {
     const item: ContentLibrary = {
       ...insertItem,
       id,
+      content: insertItem.content || null,
+      mediaUrl: insertItem.mediaUrl || null,
+      mediaType: insertItem.mediaType || null,
+      tags: insertItem.tags || null,
+      category: insertItem.category || null,
+      isTemplate: insertItem.isTemplate ?? false,
       createdAt: new Date(),
     };
     this.contentLibrary.set(id, item);
@@ -469,6 +490,8 @@ export class MemStorage implements IStorage {
     const activity: Activity = {
       ...insertActivity,
       id,
+      platform: insertActivity.platform || null,
+      metadata: insertActivity.metadata || null,
       createdAt: new Date(),
     };
     this.activities.set(id, activity);
