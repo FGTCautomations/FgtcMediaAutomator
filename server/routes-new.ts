@@ -11,6 +11,7 @@ import {
   insertMediaLibrarySchema
 } from "@shared/schema";
 import { openaiService } from "./openai-service";
+import { socialMediaService } from "./social-media-service";
 import { registerOAuthRoutes } from "./oauth-handlers";
 import { initializeAuth, requireAuth } from "./auth";
 import { registerAuthRoutes } from "./auth-routes";

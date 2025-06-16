@@ -23,7 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const loginMutation = useLogin();
+  const { signin, isSigningIn, signinError } = useAuth();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -34,20 +34,22 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginForm) => {
-    try {
-      await loginMutation.mutateAsync(data);
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
-      setLocation("/");
-    } catch (error: any) {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password",
-        variant: "destructive",
-      });
-    }
+    signin(data, {
+      onSuccess: () => {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully logged in.",
+        });
+        setLocation("/");
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Login failed",
+          description: error.message || "Invalid email or password",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const handleGoogleLogin = () => {
@@ -134,9 +136,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={isSigningIn}
               >
-                {loginMutation.isPending ? "Signing in..." : "Sign in"}
+                {isSigningIn ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </Form>
