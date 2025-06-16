@@ -53,7 +53,11 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    toast({
+      title: "Google OAuth Not Available",
+      description: "Google authentication requires API credentials to be configured",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -69,25 +73,10 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleLogin}
-          >
-            <FcGoogle className="w-4 h-4 mr-2" />
-            Continue with Google
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with email
-              </span>
-            </div>
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              Sign in with your email and password
+            </p>
           </div>
 
           <Form {...form}>

@@ -81,18 +81,18 @@ export function registerAuthRoutes(app: Express) {
     })(req, res, next);
   });
 
-  // Google OAuth routes
-  app.get("/api/auth/google", 
-    passport.authenticate("google", { scope: ["profile", "email"] })
-  );
+  // Google OAuth routes (disabled - requires API credentials)
+  // app.get("/api/auth/google", 
+  //   passport.authenticate("google", { scope: ["profile", "email"] })
+  // );
 
-  app.get("/api/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login?error=google_auth_failed" }),
-    (req: Request, res: Response) => {
-      // Successful authentication, redirect to dashboard
-      res.redirect("/");
-    }
-  );
+  // app.get("/api/auth/google/callback",
+  //   passport.authenticate("google", { failureRedirect: "/login?error=google_auth_failed" }),
+  //   (req: Request, res: Response) => {
+  //     // Successful authentication, redirect to dashboard
+  //     res.redirect("/");
+  //   }
+  // );
 
   // Get current user
   app.get("/api/auth/user", requireAuth, (req: Request, res: Response) => {

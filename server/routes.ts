@@ -50,7 +50,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const user = await storageInstance.createUser({
           email,
           name,
-          supabaseId: authResult.user.supabaseId,
         });
         
         res.status(201).json({ user, token: authResult.token });
@@ -79,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (authResult.token) {
         const decoded = authService.verifyToken(authResult.token);
         if (decoded) {
-          const user = await storageInstance.getUserBySupabaseId(decoded.userId);
+          const user = await storageInstance.getUserByEmail(email);
           res.json({ user, token: authResult.token });
         } else {
           res.status(400).json({ error: "Invalid token" });
