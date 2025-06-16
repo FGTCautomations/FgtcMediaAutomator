@@ -4,7 +4,7 @@ import { cn, getPlatformIcon, getPlatformColor } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import type { SocialAccount } from "@shared/schema";
-import SocialAccountModal from "@/components/modals/social-account-modal";
+
 
 const navigationItems = [
   { path: "/", label: "Dashboard", icon: "fas fa-chart-line" },
@@ -106,10 +106,54 @@ export default function Sidebar() {
         </Button>
       </div>
 
-      <SocialAccountModal
-        isOpen={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-      />
+      {/* Simple Social Account Modal */}
+      {showAccountModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Connect Social Account
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowAccountModal(false)}>
+                <i className="fas fa-times"></i>
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {["facebook", "twitter", "instagram", "linkedin", "youtube", "tiktok"].map((platform) => (
+                <Button
+                  key={platform}
+                  variant="outline"
+                  className="w-full justify-start p-3"
+                  onClick={() => {
+                    // Create account with required schema fields
+                    const newAccount = {
+                      platform,
+                      accountName: `demo_${platform}_user`,
+                      accountId: `${platform}_${Date.now()}`,
+                      accessToken: `token_${Date.now()}`,
+                      isConnected: true,
+                    };
+                    
+                    fetch("/api/social-accounts", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(newAccount),
+                    }).then(() => {
+                      window.location.reload(); // Simple refresh to update data
+                    });
+                    
+                    setShowAccountModal(false);
+                  }}
+                >
+                  <i className={`${getPlatformIcon(platform)} ${getPlatformColor(platform)} mr-3`}></i>
+                  Connect {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
