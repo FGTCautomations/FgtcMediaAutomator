@@ -15,10 +15,11 @@ To connect real LinkedIn accounts, you need to properly configure a LinkedIn Dev
 ## Step 2: Configure OAuth Settings
 
 1. In your LinkedIn app dashboard, go to "Auth" tab
-2. Add these OAuth 2.0 redirect URLs:
+2. Add this exact OAuth 2.0 redirect URL (copy exactly):
    ```
    https://5828fbb2-5214-4148-8c4e-a0def6d3c2da-00-e29z17qntw83.riker.replit.dev/auth/callback/linkedin
    ```
+3. Add the "Sign In with LinkedIn" product to your app (this provides basic profile access)
 
 ## Step 3: Request Permissions
 

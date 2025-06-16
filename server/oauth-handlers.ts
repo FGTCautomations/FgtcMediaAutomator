@@ -7,7 +7,8 @@ const OAUTH_CONFIG = {
     clientId: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
-    userUrl: "https://api.linkedin.com/v2/people/~:(id,firstName,lastName)",
+    userUrl: "https://api.linkedin.com/v2/people/~:(id,localizedFirstName,localizedLastName)",
+    emailUrl: "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
   },
   instagram: {
     clientId: process.env.INSTAGRAM_CLIENT_ID,
@@ -100,7 +101,24 @@ async function getUserInfo(platform: string, accessToken: string) {
     throw new Error(`User info fetch failed: ${response.statusText}`);
   }
 
-  return response.json();
+  const userData = await response.json();
+
+  // For LinkedIn, also fetch email if available
+  if (platform === "linkedin" && (config as any).emailUrl) {
+    try {
+      const emailResponse = await fetch((config as any).emailUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (emailResponse.ok) {
+        const emailData = await emailResponse.json();
+        userData.email = emailData.elements?.[0]?.["handle~"]?.emailAddress;
+      }
+    } catch (error) {
+      console.log("Email fetch failed (optional):", error);
+    }
+  }
+
+  return userData;
 }
 
 function getSetupInstructions(platform: string, req: any): string {
@@ -400,8 +418,8 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       
       switch (platform) {
         case "linkedin":
-          const firstName = userInfo.firstName?.localized?.en_US || userInfo.firstName;
-          const lastName = userInfo.lastName?.localized?.en_US || userInfo.lastName;
+          const firstName = userInfo.localizedFirstName || userInfo.firstName?.localized?.en_US || userInfo.firstName;
+          const lastName = userInfo.localizedLastName || userInfo.lastName?.localized?.en_US || userInfo.lastName;
           accountName = `${firstName} ${lastName}`.trim() || "LinkedIn User";
           accountId = userInfo.id;
           break;
