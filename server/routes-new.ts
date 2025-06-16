@@ -48,9 +48,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       });
       const account = await storage.createSocialAccount(accountData);
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "account_connected",
+        description: `Connected ${account.platform} account: ${account.accountName}`,
+        platform: account.platform,
+        metadata: { accountId: account.id }
+      });
+      
       res.status(201).json(account);
     } catch (error) {
       res.status(500).json({ error: "Failed to create social account" });
+    }
+  });
+
+  app.patch("/api/social-accounts/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      const { isConnected } = req.body;
+      
+      await storage.updateSocialAccountStatus(parseInt(id), isConnected);
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: isConnected ? "account_reconnected" : "account_disconnected",
+        description: `${isConnected ? "Reconnected" : "Disconnected"} social media account`,
+        metadata: { accountId: parseInt(id) }
+      });
+      
+      res.json({ message: "Account status updated" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update social account" });
+    }
+  });
+
+  app.delete("/api/social-accounts/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      
+      await storage.deleteSocialAccount(parseInt(id));
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "account_removed",
+        description: "Removed social media account",
+        metadata: { accountId: parseInt(id) }
+      });
+      
+      res.json({ message: "Account removed successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove social account" });
+    }
+  });
+
+  app.post("/api/social-accounts/:id/validate", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      
+      const accounts = await storage.getSocialAccounts(userId);
+      const account = accounts.find(acc => acc.id === parseInt(id));
+      
+      if (!account) {
+        return res.status(404).json({ error: "Account not found" });
+      }
+      
+      const isValid = await socialMediaService.validateConnection(account);
+      
+      if (!isValid) {
+        await storage.updateSocialAccountStatus(parseInt(id), false);
+      }
+      
+      res.json({ isValid, message: isValid ? "Connection valid" : "Connection invalid" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to validate account connection" });
     }
   });
 
@@ -136,6 +213,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/posts/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      const updates = req.body;
+      
+      const post = await storage.updatePost(parseInt(id), updates);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "post_updated",
+        description: `Updated post: ${post.content.slice(0, 50)}...`,
+        metadata: { postId: post.id }
+      });
+      
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update post" });
+    }
+  });
+
+  app.delete("/api/posts/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      
+      const post = await storage.updatePost(parseInt(id), { status: "deleted" });
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "post_deleted",
+        description: `Deleted post: ${post.content.slice(0, 50)}...`,
+        metadata: { postId: post.id }
+      });
+      
+      res.json({ message: "Post deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
+  app.post("/api/posts/:id/publish", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = getUserId(req);
+      
+      const post = await storage.updatePost(parseInt(id), { id: parseInt(id) });
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      // Publish to social media platforms
+      const results = [];
+      for (const platform of post.platforms) {
+        const result = await socialMediaService.publishPost(userId, {
+          platform,
+          content: post.content,
+          media: post.media as string[],
+          scheduledAt: post.scheduledAt || undefined
+        });
+        results.push({ platform, ...result });
+      }
+
+      // Update post status
+      const allSuccessful = results.every(r => r.success);
+      await storage.updatePost(parseInt(id), { 
+        status: allSuccessful ? "published" : "failed",
+        publishedAt: allSuccessful ? new Date() : null
+      });
+
+      res.json({ results, post });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to publish post" });
+    }
+  });
+
   // Automations
   app.get("/api/automations", requireAuth, async (req, res) => {
     try {
@@ -190,6 +351,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(summary);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch analytics summary" });
+    }
+  });
+
+  app.get("/api/analytics/live", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      const { platform } = req.query;
+      
+      // Fetch live analytics from social media APIs
+      const liveAnalytics = await socialMediaService.fetchAnalytics(userId, platform as string);
+      res.json(liveAnalytics);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch live analytics" });
+    }
+  });
+
+  app.post("/api/analytics/refresh", requireAuth, async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Trigger analytics refresh for all connected platforms
+      const analytics = await socialMediaService.fetchAnalytics(userId);
+      
+      // Create activity
+      await storage.createActivity({
+        userId,
+        type: "analytics_refreshed",
+        description: `Refreshed analytics for ${analytics.length} platforms`,
+        metadata: { platformCount: analytics.length }
+      });
+      
+      res.json({ message: "Analytics refreshed successfully", data: analytics });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to refresh analytics" });
     }
   });
 
