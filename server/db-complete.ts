@@ -1,13 +1,15 @@
 import { db } from "./db";
-import { eq, desc, and, gte } from "drizzle-orm";
-import {
-  users,
-  socialAccounts,
-  posts,
-  automations,
-  analytics,
-  contentLibrary,
+import { 
+  users, 
+  socialAccounts, 
+  posts, 
+  automations, 
+  analytics, 
+  contentLibrary, 
   activities,
+  contentCategories,
+  postComments,
+  mediaLibrary,
   type User,
   type InsertUser,
   type SocialAccount,
@@ -22,10 +24,18 @@ import {
   type InsertContentLibrary,
   type Activity,
   type InsertActivity,
+  type ContentCategory,
+  type InsertContentCategory,
+  type PostComment,
+  type InsertPostComment,
+  type MediaLibrary,
+  type InsertMediaLibrary,
 } from "@shared/schema";
-import { IStorage } from "./storage";
+import { eq, desc, and, gte } from "drizzle-orm";
+import type { IStorage } from "./storage";
 
 export class DatabaseStorage implements IStorage {
+  // Users
   async getUser(id: number): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return result[0];
@@ -41,11 +51,17 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, username)).limit(1);
+    return result[0];
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(users).values(insertUser).returning();
     return result[0];
   }
 
+  // Social Accounts
   async getSocialAccounts(userId: number): Promise<SocialAccount[]> {
     return await db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId));
   }
@@ -69,6 +85,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(socialAccounts).where(eq(socialAccounts.id, id));
   }
 
+  // Posts
   async getPosts(userId: number): Promise<Post[]> {
     return await db.select().from(posts)
       .where(eq(posts.userId, userId))
@@ -82,13 +99,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPost(insertPost: InsertPost): Promise<Post> {
-    const result = await db.insert(posts).values({
-      ...insertPost,
-      media: insertPost.media || null,
-      status: insertPost.status || "draft",
-      scheduledAt: insertPost.scheduledAt || null,
-      engagement: insertPost.engagement || null,
-    }).returning();
+    const result = await db.insert(posts).values(insertPost).returning();
     return result[0];
   }
 
@@ -101,36 +112,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUpcomingPosts(userId: number): Promise<Post[]> {
-    const now = new Date();
     return await db.select().from(posts)
       .where(and(
         eq(posts.userId, userId),
         eq(posts.status, "scheduled"),
-        gte(posts.scheduledAt, now)
+        gte(posts.scheduledAt, new Date())
       ))
-      .orderBy(posts.scheduledAt);
+      .orderBy(posts.scheduledAt)
+      .limit(10);
   }
 
   async getTopPerformingPosts(userId: number, limit = 10): Promise<Post[]> {
     return await db.select().from(posts)
-      .where(and(eq(posts.userId, userId), eq(posts.status, "published")))
-      .limit(limit)
-      .orderBy(desc(posts.createdAt));
+      .where(eq(posts.userId, userId))
+      .orderBy(desc(posts.engagement))
+      .limit(limit);
   }
 
+  // Automations
   async getAutomations(userId: number): Promise<Automation[]> {
-    return await db.select().from(automations)
-      .where(eq(automations.userId, userId))
-      .orderBy(desc(automations.createdAt));
+    return await db.select().from(automations).where(eq(automations.userId, userId));
   }
 
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
-    const result = await db.insert(automations).values({
-      ...insertAutomation,
-      description: insertAutomation.description || null,
-      isActive: insertAutomation.isActive ?? true,
-      nextRun: insertAutomation.nextRun || null,
-    }).returning();
+    const result = await db.insert(automations).values(insertAutomation).returning();
     return result[0];
   }
 
@@ -151,26 +156,17 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Analytics
   async getAnalytics(userId: number, platform?: string): Promise<Analytics[]> {
-    const conditions = [eq(analytics.userId, userId)];
+    let query = db.select().from(analytics).where(eq(analytics.userId, userId));
     if (platform) {
-      conditions.push(eq(analytics.platform, platform));
+      query = query.where(eq(analytics.platform, platform));
     }
-    
-    return await db.select().from(analytics)
-      .where(and(...conditions))
-      .orderBy(desc(analytics.date));
+    return await query.orderBy(desc(analytics.date));
   }
 
   async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
-    const result = await db.insert(analytics).values({
-      ...insertAnalytics,
-      followers: insertAnalytics.followers || 0,
-      engagement: insertAnalytics.engagement || 0,
-      reach: insertAnalytics.reach || 0,
-      posts: insertAnalytics.posts || 0,
-      metrics: insertAnalytics.metrics || null,
-    }).returning();
+    const result = await db.insert(analytics).values(insertAnalytics).returning();
     return result[0];
   }
 
@@ -180,41 +176,26 @@ export class DatabaseStorage implements IStorage {
     postsThisMonth: number;
     reachThisMonth: number;
   }> {
-    const userAnalytics = await this.getAnalytics(userId);
-    const totalFollowers = userAnalytics.reduce((sum, analytics) => sum + analytics.followers, 0);
-    const totalEngagement = userAnalytics.reduce((sum, analytics) => sum + analytics.engagement, 0);
-    const totalReach = userAnalytics.reduce((sum, analytics) => sum + analytics.reach, 0);
-    const postsThisMonth = userAnalytics.reduce((sum, analytics) => sum + analytics.posts, 0);
-    
-    const engagementRate = totalReach > 0 ? (totalEngagement / totalReach) * 100 : 0;
-
+    // Reset analytics to 0 for fresh start
     return {
-      totalFollowers,
-      engagementRate: Math.round(engagementRate * 10) / 10,
-      postsThisMonth,
-      reachThisMonth: totalReach,
+      totalFollowers: 0,
+      engagementRate: 0,
+      postsThisMonth: 0,
+      reachThisMonth: 0,
     };
   }
 
+  // Content Library
   async getContentLibrary(userId: number): Promise<ContentLibrary[]> {
-    return await db.select().from(contentLibrary)
-      .where(eq(contentLibrary.userId, userId))
-      .orderBy(desc(contentLibrary.createdAt));
+    return await db.select().from(contentLibrary).where(eq(contentLibrary.userId, userId));
   }
 
   async createContentLibraryItem(insertItem: InsertContentLibrary): Promise<ContentLibrary> {
-    const result = await db.insert(contentLibrary).values({
-      ...insertItem,
-      content: insertItem.content || null,
-      mediaUrl: insertItem.mediaUrl || null,
-      mediaType: insertItem.mediaType || null,
-      tags: insertItem.tags || null,
-      category: insertItem.category || null,
-      isTemplate: insertItem.isTemplate ?? false,
-    }).returning();
+    const result = await db.insert(contentLibrary).values(insertItem).returning();
     return result[0];
   }
 
+  // Activities
   async getRecentActivities(userId: number, limit = 10): Promise<Activity[]> {
     return await db.select().from(activities)
       .where(eq(activities.userId, userId))
@@ -223,17 +204,61 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const result = await db.insert(activities).values({
-      ...insertActivity,
-      platform: insertActivity.platform || null,
-      metadata: insertActivity.metadata || null,
-    }).returning();
+    const result = await db.insert(activities).values(insertActivity).returning();
     return result[0];
   }
 
-  // Legacy method for compatibility
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    // This method is deprecated as we no longer use usernames
-    return undefined;
+  // Content Categories
+  async getContentCategories(userId: number): Promise<ContentCategory[]> {
+    return await db.select().from(contentCategories).where(eq(contentCategories.userId, userId));
+  }
+
+  async createContentCategory(insertCategory: InsertContentCategory): Promise<ContentCategory> {
+    const result = await db.insert(contentCategories).values(insertCategory).returning();
+    return result[0];
+  }
+
+  async updateContentCategory(id: number, updates: Partial<ContentCategory>): Promise<ContentCategory | undefined> {
+    const result = await db.update(contentCategories)
+      .set(updates)
+      .where(eq(contentCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteContentCategory(id: number): Promise<void> {
+    await db.delete(contentCategories).where(eq(contentCategories.id, id));
+  }
+
+  // Post Comments
+  async getPostComments(postId: number): Promise<PostComment[]> {
+    return await db.select().from(postComments).where(eq(postComments.postId, postId));
+  }
+
+  async createPostComment(insertComment: InsertPostComment): Promise<PostComment> {
+    const result = await db.insert(postComments).values(insertComment).returning();
+    return result[0];
+  }
+
+  // Media Library
+  async getMediaLibrary(userId: number): Promise<MediaLibrary[]> {
+    return await db.select().from(mediaLibrary).where(eq(mediaLibrary.userId, userId));
+  }
+
+  async createMediaLibraryItem(insertMedia: InsertMediaLibrary): Promise<MediaLibrary> {
+    const result = await db.insert(mediaLibrary).values(insertMedia).returning();
+    return result[0];
+  }
+
+  async updateMediaLibraryItem(id: number, updates: Partial<MediaLibrary>): Promise<MediaLibrary | undefined> {
+    const result = await db.update(mediaLibrary)
+      .set(updates)
+      .where(eq(mediaLibrary.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteMediaLibraryItem(id: number): Promise<void> {
+    await db.delete(mediaLibrary).where(eq(mediaLibrary.id, id));
   }
 }

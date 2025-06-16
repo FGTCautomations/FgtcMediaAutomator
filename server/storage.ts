@@ -312,8 +312,8 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.email === email);
   }
 
-  async getUserBySupabaseId(supabaseId: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.supabaseId === supabaseId);
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.googleId === googleId);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -323,9 +323,10 @@ export class MemStorage implements IStorage {
       email: insertUser.email,
       name: insertUser.name,
       avatar: insertUser.avatar || null,
-      supabaseId: insertUser.supabaseId || null,
-      role: "user",
-      currentWorkspaceId: null,
+      password: insertUser.password || null,
+      googleId: insertUser.googleId || null,
+      role: insertUser.role || "team_member",
+      currentWorkspaceId: insertUser.currentWorkspaceId || null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -621,4 +622,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./db-complete";
+
+export const storage = new DatabaseStorage();
