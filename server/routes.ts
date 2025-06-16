@@ -24,11 +24,8 @@ const storageInstance = storage;
 export async function registerRoutes(app: Express): Promise<Server> {
   const DEFAULT_USER_ID = 1; // For MVP, we'll use a single user
 
-  // Authentication middleware - simplified for MVP
-  const authenticateToken = (req: any, res: any, next: any) => {
-    req.userId = DEFAULT_USER_ID; // Use default user for MVP
-    next();
-  };
+  // Authentication middleware - use actual auth
+  const authenticateToken = requireAuth;
 
   // Authentication endpoints
   app.post("/api/auth/signup", async (req, res) => {
@@ -445,27 +442,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/media-library/upload", async (req: any, res) => {
+  app.post("/api/media-library/upload", authenticateToken, async (req: any, res) => {
     try {
+      // Get user ID from authenticated session
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
       // Since we don't have actual file storage, we'll simulate file upload
       // In a real app, this would handle file uploads to cloud storage
       const fileName = `uploaded_${Date.now()}.jpg`;
       const fileUrl = `https://picsum.photos/800/600?random=${Date.now()}`;
       
       const mediaData = insertMediaLibrarySchema.parse({
-        url: fileUrl,
+        filename: fileName,
         originalName: fileName,
         mimeType: "image/jpeg",
         size: Math.floor(Math.random() * 2000000) + 100000, // Random size between 100KB-2MB
+        url: fileUrl,
         alt: fileName,
         tags: [],
-        userId: req.userId,
+        userId: userId,
       });
       
       const media = await storageInstance.createMediaLibraryItem(mediaData);
       res.status(201).json(media);
     } catch (error) {
-      res.status(500).json({ error: "Failed to upload file" });
+      console.error("Media upload error:", error);
+      res.status(500).json({ error: "Failed to upload file", details: (error as Error).message });
     }
   });
 
