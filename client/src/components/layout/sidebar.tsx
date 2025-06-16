@@ -193,6 +193,18 @@ export default function Sidebar() {
                         };
                         
                         const clientId = clientIds[platform.platform as keyof typeof clientIds];
+                        
+                        // Check if client ID is configured
+                        if (!clientId) {
+                          // Show setup instructions for missing credentials
+                          const setupWindow = window.open(
+                            `/auth/callback/${platform.platform}?setup=true`, 
+                            'oauth_setup', 
+                            'width=800,height=700'
+                          );
+                          return;
+                        }
+                        
                         const redirectUri = `${window.location.origin}/auth/callback/${platform.platform}`;
                         const scope = platform.platform === "facebook" ? "pages_manage_posts,pages_read_engagement" :
                                      platform.platform === "twitter" ? "tweet.read,tweet.write,users.read" :
