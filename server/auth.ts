@@ -53,41 +53,44 @@ passport.use(new LocalStrategy(
   }
 ));
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID || "",
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-  callbackURL: "/api/auth/google/callback"
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    // Check if user exists by Google ID
-    let user = await storage.getUserByGoogleId(profile.id);
-    
-    if (!user) {
-      // Check if user exists by email
-      user = await storage.getUserByEmail(profile.emails?.[0]?.value || "");
+// Only configure Google OAuth if credentials are provided
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/api/auth/google/callback"
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      // Check if user exists by Google ID
+      let user = await storage.getUserByGoogleId(profile.id);
       
-      if (user) {
-        // Link Google account to existing user
-        // This would require an update method in storage
-        return done(null, user);
-      } else {
-        // Create new user
-        const newUser = await storage.createUser({
-          email: profile.emails?.[0]?.value || "",
-          name: profile.displayName || "",
-          avatar: profile.photos?.[0]?.value || null,
-          googleId: profile.id,
-          password: null,
-        });
-        return done(null, newUser);
+      if (!user) {
+        // Check if user exists by email
+        user = await storage.getUserByEmail(profile.emails?.[0]?.value || "");
+        
+        if (user) {
+          // Link Google account to existing user
+          // This would require an update method in storage
+          return done(null, user);
+        } else {
+          // Create new user
+          const newUser = await storage.createUser({
+            email: profile.emails?.[0]?.value || "",
+            name: profile.displayName || "",
+            avatar: profile.photos?.[0]?.value || null,
+            googleId: profile.id,
+            password: null,
+          });
+          return done(null, newUser);
+        }
       }
+      
+      return done(null, user);
+    } catch (error) {
+      return done(error);
     }
-    
-    return done(null, user);
-  } catch (error) {
-    return done(error);
-  }
-}));
+  }));
+}
 
 passport.serializeUser((user: any, done) => {
   done(null, user.id);
