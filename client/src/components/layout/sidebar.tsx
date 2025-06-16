@@ -21,9 +21,11 @@ export default function Sidebar() {
   const [location] = useLocation();
   const [showAccountModal, setShowAccountModal] = useState(false);
   
-  const { data: socialAccounts = [] } = useQuery<SocialAccount[]>({
+  const socialAccountsQuery = useQuery<SocialAccount[]>({
     queryKey: ["/api/social-accounts"],
   });
+  
+  const socialAccounts = socialAccountsQuery.data || [];
 
   return (
     <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -239,7 +241,26 @@ export default function Sidebar() {
                                      platform.platform === "pinterest" ? "boards:read,boards:write,pins:read,pins:write,user_accounts:read" :
                                      "read,write";
                         
-                        const authUrl = `${platform.oauth}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform.platform}`;
+                        // Build proper OAuth URLs for each platform
+                        let authUrl = "";
+                        
+                        switch (platform.platform) {
+                          case "linkedin":
+                            authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}`;
+                            break;
+                          case "instagram":
+                            authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform.platform}`;
+                            break;
+                          case "twitter":
+                            authUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}&code_challenge=challenge&code_challenge_method=plain`;
+                            break;
+                          case "youtube":
+                          case "googlemybusiness":
+                            authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}&access_type=offline`;
+                            break;
+                          default:
+                            authUrl = `${platform.oauth}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform.platform}`;
+                        }
                         
                         // Open OAuth in new window
                         const authWindow = window.open(authUrl, 'oauth', 'width=600,height=600');
@@ -248,8 +269,8 @@ export default function Sidebar() {
                         const checkClosed = setInterval(() => {
                           if (authWindow?.closed) {
                             clearInterval(checkClosed);
-                            // Refresh to check for new connection
-                            window.location.reload();
+                            // Refresh social accounts data instead of full page reload
+                            socialAccountsQuery.refetch();
                           }
                         }, 1000);
                         

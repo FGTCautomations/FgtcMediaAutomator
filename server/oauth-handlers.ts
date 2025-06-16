@@ -455,12 +455,26 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       `);
 
     } catch (error) {
-      console.error("OAuth callback error:", error);
+      console.error(`OAuth callback error for ${platform}:`, error);
+      console.error("Error details:", {
+        platform,
+        code: !!code,
+        hasConfig: !!config,
+        hasClientId: !!config?.clientId,
+        hasClientSecret: !!config?.clientSecret,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
+      
       res.status(500).send(`
         <html>
           <body style="font-family: Arial, sans-serif; max-width: 500px; margin: 100px auto; text-align: center; padding: 20px;">
             <h2 style="color: #dc3545;">❌ Connection Failed</h2>
-            <p>Failed to connect your account: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+            <p>Failed to connect your <strong>${platform}</strong> account:</p>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; text-align: left;">
+              <strong>Error:</strong> ${error instanceof Error ? error.message : 'Unknown error'}
+            </div>
+            <p style="font-size: 14px; color: #666;">Please check the console logs for more details.</p>
             <button onclick="window.close()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 20px;">
               Close Window
             </button>
