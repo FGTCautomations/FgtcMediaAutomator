@@ -252,11 +252,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/top-performing", async (req: any, res) => {
+  app.get("/api/posts/top-performing", authenticateToken, async (req: any, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
       const { limit } = req.query;
       const posts = await storageInstance.getTopPerformingPosts(
-        req.userId,
+        userId,
         limit ? parseInt(limit as string) : undefined
       );
       res.json(posts);
@@ -358,11 +361,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activities endpoints
-  app.get("/api/activities", async (req: any, res) => {
+  app.get("/api/activities", authenticateToken, async (req: any, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
       const { limit } = req.query;
       const activities = await storageInstance.getRecentActivities(
-        req.userId,
+        userId,
         limit ? parseInt(limit as string) : undefined
       );
       res.json(activities);
@@ -382,9 +388,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Content Categories endpoints
-  app.get("/api/content-categories", async (req: any, res) => {
+  app.get("/api/content-categories", authenticateToken, async (req: any, res) => {
     try {
-      const categories = await storageInstance.getContentCategories(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const categories = await storageInstance.getContentCategories(userId);
       res.json(categories);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch content categories" });
@@ -429,9 +438,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Media Library endpoints
-  app.get("/api/media-library", async (req: any, res) => {
+  app.get("/api/media-library", authenticateToken, async (req: any, res) => {
     try {
-      const media = await storageInstance.getMediaLibrary(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const media = await storageInstance.getMediaLibrary(userId);
       res.json(media);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch media library" });
