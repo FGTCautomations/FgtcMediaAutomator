@@ -229,7 +229,8 @@ export default function Sidebar() {
                           return;
                         }
                         
-                        const redirectUri = `${window.location.origin}/auth/callback/${platform.platform}`;
+                        // Use consistent redirect URI that matches setup instructions
+                        const redirectUri = `https://5828fbb2-5214-4148-8c4e-a0def6d3c2da-00-e29z17qntw83.riker.replit.dev/auth/callback/${platform.platform}`;
                         const scope = platform.platform === "linkedin" ? "w_member_social,r_liteprofile,r_organization_social,w_organization_social" :
                                      platform.platform === "instagram" ? "instagram_basic,instagram_content_publish" :
                                      platform.platform === "twitter" ? "tweet.read,tweet.write,users.read,offline.access" :
@@ -246,6 +247,8 @@ export default function Sidebar() {
                         
                         switch (platform.platform) {
                           case "linkedin":
+                            console.log('LinkedIn OAuth URL:', `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}`);
+                            console.log('Redirect URI:', redirectUri);
                             authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}`;
                             break;
                           case "instagram":

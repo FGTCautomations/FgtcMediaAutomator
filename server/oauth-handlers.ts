@@ -378,6 +378,17 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       const host = process.env.REPLIT_DOMAINS || req.get('host');
       const protocol = process.env.REPLIT_DOMAINS ? 'https' : req.protocol;
       const redirectUri = `${protocol}://${host}/auth/callback/${platform}`;
+      
+      console.log(`OAuth callback for ${platform}:`, {
+        host,
+        protocol,
+        redirectUri,
+        requestHost: req.get('host'),
+        replit_domains: process.env.REPLIT_DOMAINS,
+        userAgent: req.get('user-agent'),
+        referer: req.get('referer')
+      });
+      
       const tokenData = await exchangeCodeForToken(platform, code as string, redirectUri);
       
       // Get user info from the platform
@@ -455,6 +466,10 @@ ${platform.toUpperCase()}_CLIENT_SECRET=your_client_secret</pre>
       `);
 
     } catch (error) {
+      const { platform } = req.params;
+      const { code } = req.query;
+      const config = OAUTH_CONFIG[platform as keyof typeof OAUTH_CONFIG];
+      
       console.error(`OAuth callback error for ${platform}:`, error);
       console.error("Error details:", {
         platform,
