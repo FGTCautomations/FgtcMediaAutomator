@@ -268,11 +268,10 @@ export default function Sidebar() {
                         
                         switch (platform.platform) {
                           case "linkedin":
-                            // Use demo mode for LinkedIn due to OAuth approval requirements
-                            setDemoPlatform(platform.platform);
-                            setShowDemoSuccess(true);
-                            createDemoAccountMutation.mutate(platform.platform);
-                            return;
+                            console.log('LinkedIn OAuth URL:', `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}`);
+                            console.log('Redirect URI:', redirectUri);
+                            authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform.platform}`;
+                            break;
                           case "instagram":
                             authUrl = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform.platform}`;
                             break;
