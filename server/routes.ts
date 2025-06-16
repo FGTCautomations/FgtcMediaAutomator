@@ -167,9 +167,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Social accounts endpoints - supports unlimited accounts per user
-  app.get("/api/social-accounts", async (req: any, res) => {
+  app.get("/api/social-accounts", authenticateToken, async (req: any, res) => {
     try {
-      const accounts = await storageInstance.getSocialAccounts(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const accounts = await storageInstance.getSocialAccounts(userId);
       res.json(accounts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch social accounts" });
@@ -237,9 +240,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/upcoming", async (req: any, res) => {
+  app.get("/api/posts/upcoming", authenticateToken, async (req: any, res) => {
     try {
-      const posts = await storageInstance.getUpcomingPosts(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const posts = await storageInstance.getUpcomingPosts(userId);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch upcoming posts" });
@@ -303,9 +309,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Automations endpoints
-  app.get("/api/automations", async (req: any, res) => {
+  app.get("/api/automations", authenticateToken, async (req: any, res) => {
     try {
-      const automations = await storageInstance.getAutomations(req.userId);
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
+      const automations = await storageInstance.getAutomations(userId);
       res.json(automations);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch automations" });
