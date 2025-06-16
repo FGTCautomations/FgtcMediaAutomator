@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
@@ -17,12 +18,41 @@ import { DatabaseStorage } from "./db-storage";
 import { registerOAuthRoutes } from "./oauth-handlers";
 import { initializeAuth, requireAuth } from "./auth";
 import { registerAuthRoutes } from "./auth-routes";
+import multer from "multer";
+import path from "path";
 
 // Use memory storage for MVP to avoid database connection issues
 const storageInstance = storage;
 
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const DEFAULT_USER_ID = 1; // For MVP, we'll use a single user
+
+  // Serve static files from uploads directory
+  app.use('/uploads', express.static('uploads'));
 
   // Authentication middleware - use actual auth
   const authenticateToken = requireAuth;
@@ -469,26 +499,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/media-library/upload", authenticateToken, async (req: any, res) => {
+  app.post("/api/media-library/upload", authenticateToken, upload.single('file'), async (req: any, res) => {
     try {
-      // Get user ID from authenticated session
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      // Since we don't have actual file storage, we'll simulate file upload
-      // In a real app, this would handle file uploads to cloud storage
-      const fileName = `uploaded_${Date.now()}.jpg`;
-      const fileUrl = `https://picsum.photos/800/600?random=${Date.now()}`;
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const file = req.file;
+      const fileUrl = `/uploads/${file.filename}`;
       
       const mediaData = insertMediaLibrarySchema.parse({
-        filename: fileName,
-        originalName: fileName,
-        mimeType: "image/jpeg",
-        size: Math.floor(Math.random() * 2000000) + 100000, // Random size between 100KB-2MB
+        filename: file.filename,
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
         url: fileUrl,
-        alt: fileName,
+        alt: file.originalname,
         tags: [],
         userId: userId,
       });

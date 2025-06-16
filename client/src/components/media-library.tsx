@@ -21,14 +21,27 @@ export default function MediaLibraryComponent() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      return fetch("/api/media-library/upload", {
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch("/api/media-library/upload", {
         method: "POST",
         body: formData,
+        credentials: 'include', // Include auth cookies
       });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/media-library"] });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     },
   });
 
