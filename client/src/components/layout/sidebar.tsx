@@ -59,7 +59,7 @@ export default function Sidebar() {
       <nav className="flex-1 p-4 space-y-2">
         {navigationItems.map((item) => (
           <Link key={item.path} href={item.path}>
-            <a
+            <div
               className={cn(
                 "sidebar-nav-item",
                 location === item.path && "active"
@@ -67,7 +67,7 @@ export default function Sidebar() {
             >
               <i className={`${item.icon} text-lg`}></i>
               <span className="font-medium">{item.label}</span>
-            </a>
+            </div>
           </Link>
         ))}
       </nav>
@@ -78,12 +78,15 @@ export default function Sidebar() {
           Connected Accounts
         </h3>
         <div className="space-y-2">
-          {socialAccounts.map((account) => (
+          {socialAccounts.map((account: any) => (
             <div key={account.id} className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <i className={cn(getPlatformIcon(account.platform), getPlatformColor(account.platform))}></i>
                 <span className="text-sm text-gray-600 dark:text-gray-300 capitalize">
                   {account.platform}
+                </span>
+                <span className="text-xs text-gray-400">
+                  ({account.accountName})
                 </span>
               </div>
               <div

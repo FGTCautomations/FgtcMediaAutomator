@@ -43,11 +43,11 @@ export default function QuickActions() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {quickActions.map((action) => (
           <Link key={action.href} href={action.href}>
-            <a className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow text-left block">
+            <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow text-left block cursor-pointer">
               <i className={`${action.icon} ${action.color} text-xl mb-2 block`}></i>
               <h3 className="font-medium text-gray-900 dark:text-white">{action.title}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">{action.description}</p>
-            </a>
+            </div>
           </Link>
         ))}
       </div>
