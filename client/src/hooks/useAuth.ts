@@ -1,18 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest, getQueryFn } from "@/lib/queryClient";
+import { supabase, type User as SupabaseUser, type Session, hasSupabaseConfig } from "@/lib/supabase";
+import { useEffect, useState } from "react";
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
-  name: string;
+  name?: string;
   avatar?: string;
-  role: string;
-}
-
-export interface AuthResponse {
-  user: User | null;
-  token: string | null;
-  error: string | null;
 }
 
 export interface LoginCredentials {
@@ -28,9 +22,12 @@ export interface SignupCredentials {
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
 
-  // Get current user
-  const { data: user, isLoading } = useQuery<User | null>({
+  // Use legacy auth system if Supabase not configured
+  const { data: legacyUser, isLoading: legacyLoading } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
       const res = await fetch("/api/auth/user", {
@@ -38,97 +35,145 @@ export function useAuth() {
       });
       if (res.status === 401) return null;
       if (!res.ok) throw new Error("Failed to fetch user");
-      return res.json();
+      const userData = await res.json();
+      return userData ? {
+        id: userData.id.toString(),
+        email: userData.email,
+        name: userData.name,
+        avatar: userData.avatar,
+      } : null;
     },
     retry: false,
+    enabled: !hasSupabaseConfig,
   });
 
+  // Initialize auth state
+  useEffect(() => {
+    if (!hasSupabaseConfig) {
+      setUser(legacyUser);
+      setIsLoading(legacyLoading);
+      return;
+    }
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
+          avatar: session.user.user_metadata?.avatar_url,
+        });
+      }
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
+          avatar: session.user.user_metadata?.avatar_url,
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [hasSupabaseConfig, legacyUser, legacyLoading]);
+
   // Sign up mutation
-  const signupMutation = useMutation<AuthResponse, Error, SignupCredentials>({
-    mutationFn: async (data) => {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+  const signupMutation = useMutation({
+    mutationFn: async (data: SignupCredentials) => {
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name,
+            full_name: data.name,
+          },
         },
-        body: JSON.stringify(data),
-        credentials: "include",
       });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.message || "Signup failed");
+      if (error) {
+        throw new Error(error.message);
       }
       
-      return result;
+      return authData;
     },
-    onSuccess: (data) => {
-      if (data.user) {
-        queryClient.setQueryData(["/api/auth/user"], data.user);
-        if (data.token) {
-          localStorage.setItem("auth_token", data.token);
-        }
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
   });
 
   // Sign in mutation
-  const signinMutation = useMutation<AuthResponse, Error, LoginCredentials>({
-    mutationFn: async (data) => {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        credentials: "include",
+  const signinMutation = useMutation({
+    mutationFn: async (data: LoginCredentials) => {
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.message || "Login failed");
+      if (error) {
+        throw new Error(error.message);
       }
       
-      return result;
+      return authData;
     },
-    onSuccess: (data) => {
-      if (data.user) {
-        queryClient.setQueryData(["/api/auth/user"], data.user);
-        if (data.token) {
-          localStorage.setItem("auth_token", data.token);
-        }
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
   });
 
   // Sign out mutation
   const signoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error(error.message);
+      }
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      localStorage.removeItem("auth_token");
       queryClient.clear();
+    },
+  });
+
+  // Reset password mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
     },
   });
 
   return {
     user,
+    session,
     isLoading,
     isAuthenticated: !!user,
     signup: signupMutation.mutate,
     signin: signinMutation.mutate,
     signout: signoutMutation.mutate,
+    resetPassword: resetPasswordMutation.mutate,
     isSigningUp: signupMutation.isPending,
     isSigningIn: signinMutation.isPending,
     isSigningOut: signoutMutation.isPending,
+    isResettingPassword: resetPasswordMutation.isPending,
     signupError: signupMutation.error,
     signinError: signinMutation.error,
+    resetPasswordError: resetPasswordMutation.error,
   };
 }
