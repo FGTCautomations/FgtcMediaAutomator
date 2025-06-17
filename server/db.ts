@@ -2,12 +2,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is required. Please add your Supabase connection string.");
-}
+// Use Supabase database URL for production, fallback to local for development
+const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
 
-// Configure for Supabase compatibility
-const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("SUPABASE_DATABASE_URL environment variable is required for database connection.");
+}
 const client = postgres(connectionString, {
   ssl: 'require',
   max: 20,

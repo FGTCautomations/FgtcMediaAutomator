@@ -21,8 +21,8 @@ import { registerAuthRoutes } from "./auth-routes";
 import multer from "multer";
 import path from "path";
 
-// Use memory storage for MVP to avoid database connection issues
-const storageInstance = storage;
+// Use Supabase database storage
+const storageInstance = new DatabaseStorage();
 
 // Configure multer for file uploads
 const upload = multer({
