@@ -259,15 +259,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Posts endpoints
-  app.get("/api/posts", async (req: any, res) => {
+  app.get("/api/posts", authenticateToken, async (req: any, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      
       const { status } = req.query;
       let posts;
       
       if (status) {
-        posts = await storageInstance.getPostsByStatus(req.userId, status as string);
+        posts = await storageInstance.getPostsByStatus(userId, status as string);
       } else {
-        posts = await storageInstance.getPosts(req.userId);
+        posts = await storageInstance.getPosts(userId);
       }
       
       res.json(posts);
