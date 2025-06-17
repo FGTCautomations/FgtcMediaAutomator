@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import AppLayout from "@/components/layout/app-layout";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
+import ResetPasswordPage from "@/pages/reset-password";
 import Dashboard from "@/pages/dashboard";
 import Calendar from "@/pages/calendar";
 import Compose from "@/pages/compose";
@@ -38,6 +39,7 @@ function Router() {
         {/* Auth routes - available when not logged in */}
         <Route path="/login" component={LoginPage} />
         <Route path="/signup" component={SignupPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
         
         {/* Protected routes - available when logged in */}
         {user ? (
@@ -56,8 +58,13 @@ function Router() {
             </Switch>
           </AppLayout>
         ) : (
-          /* Redirect to login if not authenticated */
-          <Route path="/" component={LoginPage} />
+          /* Show login/signup when not authenticated */
+          <>
+            <Route path="/" component={LoginPage} />
+            <Route path="/login" component={LoginPage} />
+            <Route path="/signup" component={SignupPage} />
+            <Route path="/reset-password" component={ResetPasswordPage} />
+          </>
         )}
         
         <Route component={NotFound} />
