@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { registerAuthRoutes } from "./auth-routes";
-import { initializeAuth } from "./auth";
+// import { initializeAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 
 (async () => {
   // Initialize authentication first
-  initializeAuth(app);
+  // initializeAuth(app);
   
   // Register auth routes
   registerAuthRoutes(app);

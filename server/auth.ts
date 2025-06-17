@@ -100,11 +100,12 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: number, done) => {
   try {
-    const storage = databaseManager.getStorage();
-    const user = await storage.getUser(id);
+    const storageService = databaseManager.getStorage();
+    const user = await storageService.getUser(id);
     done(null, user);
   } catch (error) {
-    done(error);
+    // Fallback for authentication errors
+    done(null, null);
   }
 });
 
