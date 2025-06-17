@@ -30,10 +30,12 @@ async function testDatabaseConnection() {
   }
 }
 
-if (require.main === module) {
-  testDatabaseConnection().then(success => {
-    process.exit(success ? 0 : 1);
-  });
-}
+// Run test if this file is executed directly
+testDatabaseConnection().then(success => {
+  process.exit(success ? 0 : 1);
+}).catch(error => {
+  console.error("Test failed:", error);
+  process.exit(1);
+});
 
 export { testDatabaseConnection };

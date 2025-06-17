@@ -21,9 +21,11 @@ import { registerAuthRoutes } from "./auth-routes";
 import multer from "multer";
 import path from "path";
 
-// Initialize storage - use memory storage temporarily while resolving Supabase connection
+// Use centralized database manager
+import { databaseManager } from "./database-manager";
 import type { IStorage } from "./storage";
-const storageInstance: IStorage = storage;
+
+let storageInstance: IStorage;
 
 // Configure multer for file uploads
 const upload = multer({
@@ -51,6 +53,9 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const DEFAULT_USER_ID = 1; // For MVP, we'll use a single user
+  
+  // Initialize storage with database manager
+  storageInstance = await databaseManager.initialize();
 
   // Serve static files from uploads directory
   app.use('/uploads', express.static('uploads'));
