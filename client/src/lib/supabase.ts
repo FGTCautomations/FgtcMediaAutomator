@@ -16,6 +16,7 @@ const isValidUrl = (url: string) => {
 export const hasSupabaseConfig = !!(
   supabaseUrl && 
   supabaseAnonKey && 
+  supabaseUrl.includes('bospemspdmewrvpkuajp') &&
   isValidUrl(supabaseUrl)
 )
 
