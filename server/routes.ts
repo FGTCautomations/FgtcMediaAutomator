@@ -54,6 +54,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from uploads directory
   app.use('/uploads', express.static('uploads'));
 
+  // Demo login endpoint - bypasses authentication temporarily
+  app.post("/api/auth/demo-login", async (req: any, res) => {
+    try {
+      // Create session manually for user ID 3
+      req.session.userId = 3;
+      req.session.user = {
+        id: 3,
+        email: "ddevlaam@hotmail.com",
+        name: "Demo User"
+      };
+      
+      res.json({ 
+        message: "Demo login successful - session created",
+        user: { id: 3, email: "ddevlaam@hotmail.com", name: "Demo User" }
+      });
+    } catch (error) {
+      console.error("Demo login error:", error);
+      res.status(500).json({ error: "Demo login failed" });
+    }
+  });
+
   // Authentication middleware - use actual auth
   const authenticateToken = requireAuth;
 

@@ -94,6 +94,30 @@ export function registerAuthRoutes(app: Express) {
   //   }
   // );
 
+  // Demo login endpoint - creates session for existing user
+  app.post("/api/auth/demo-login", async (req: Request, res: Response) => {
+    try {
+      // Find existing user by email
+      const user = await storage.getUserByEmail("ddevlaam@hotmail.com");
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Manually log in the user
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Login failed" });
+        }
+        res.json({ 
+          message: "Demo login successful",
+          user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar }
+        });
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Demo login failed" });
+    }
+  });
+
   // Get current user
   app.get("/api/auth/user", requireAuth, (req: Request, res: Response) => {
     const user = req.user as any;
