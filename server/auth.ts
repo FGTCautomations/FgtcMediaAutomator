@@ -4,7 +4,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
-import { storage } from "./storage";
+import { databaseManager } from "./database-manager";
 import connectPg from "connect-pg-simple";
 import type { User } from "@shared/schema";
 
@@ -36,7 +36,8 @@ passport.use(new LocalStrategy(
   { usernameField: "email" },
   async (email, password, done) => {
     try {
-      const user = await storage.getUserByEmail(email);
+      const storageService = databaseManager.getStorage();
+      const user = await storageService.getUserByEmail(email);
       if (!user || !user.password) {
         return done(null, false, { message: "Invalid email or password" });
       }
@@ -62,11 +63,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user exists by Google ID
-      let user = await storage.getUserByGoogleId(profile.id);
+      const storageService = databaseManager.getStorage();
+      let user = await storageService.getUserByGoogleId(profile.id);
       
       if (!user) {
         // Check if user exists by email
-        user = await storage.getUserByEmail(profile.emails?.[0]?.value || "");
+        user = await storageService.getUserByEmail(profile.emails?.[0]?.value || "");
         
         if (user) {
           // Link Google account to existing user
@@ -74,7 +76,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           return done(null, user);
         } else {
           // Create new user
-          const newUser = await storage.createUser({
+          const newUser = await storageService.createUser({
             email: profile.emails?.[0]?.value || "",
             name: profile.displayName || "",
             avatar: profile.photos?.[0]?.value || null,
@@ -98,6 +100,7 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: number, done) => {
   try {
+    const storage = databaseManager.getStorage();
     const user = await storage.getUser(id);
     done(null, user);
   } catch (error) {
