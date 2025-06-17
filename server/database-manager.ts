@@ -15,28 +15,12 @@ class DatabaseManager {
   }
 
   async initialize(): Promise<IStorage> {
-    try {
-      // Test Supabase connection
-      const { testDatabaseConnection } = await import("./test-db-connection");
-      this.isSupabaseConnected = await testDatabaseConnection();
-
-      if (this.isSupabaseConnected) {
-        console.log('✓ Supabase database connected - migrating to database storage');
-        this.currentStorage = new DatabaseStorage();
-        
-        // Run migration if needed
-        await this.runMigration();
-        
-        return this.currentStorage;
-      } else {
-        console.log('⚠ Database connection failed - using memory storage');
-        console.log('💡 Please verify your Supabase database URL is correct and the project is active');
-        return storage;
-      }
-    } catch (error: any) {
-      console.log('⚠ Database initialization failed, using memory storage:', error.message);
-      return storage;
-    }
+    // Use memory storage until Supabase project is active
+    console.log('⚠ Using memory storage - Supabase project appears inactive');
+    console.log('💡 Check your Supabase dashboard for project status and reactivate if needed');
+    this.currentStorage = storage;
+    this.isSupabaseConnected = false;
+    return storage;
   }
 
   private async runMigration(): Promise<void> {
