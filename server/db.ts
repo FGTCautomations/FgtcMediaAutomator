@@ -9,10 +9,11 @@ if (!connectionString) {
   throw new Error("SUPABASE_DATABASE_URL environment variable is required for database connection.");
 }
 const client = postgres(connectionString, {
-  ssl: 'require',
+  ssl: connectionString.includes('supabase.co') ? 'require' : false,
   max: 20,
   idle_timeout: 20,
   connect_timeout: 10,
+  onnotice: () => {}, // Suppress notices
 });
 
 export const db = drizzle(client, { schema });

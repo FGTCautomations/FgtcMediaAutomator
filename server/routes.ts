@@ -14,15 +14,16 @@ import {
 } from "@shared/schema";
 import { openaiService } from "./openai-service";
 import { authService } from "./auth-service";
-import { DatabaseStorage } from "./db-storage";
+import { DatabaseStorage } from "./db-complete";
 import { registerOAuthRoutes } from "./oauth-handlers";
 import { initializeAuth, requireAuth } from "./auth";
 import { registerAuthRoutes } from "./auth-routes";
 import multer from "multer";
 import path from "path";
 
-// Use Supabase database storage
-const storageInstance = new DatabaseStorage();
+// Initialize storage - use memory storage temporarily while resolving Supabase connection
+import type { IStorage } from "./storage";
+const storageInstance: IStorage = storage;
 
 // Configure multer for file uploads
 const upload = multer({
