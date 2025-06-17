@@ -149,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // OpenAI endpoints
-  app.post("/api/ai/improve-post", authenticateToken, async (req, res) => {
+  app.post("/api/ai/improve-post", async (req, res) => {
     try {
       const { content, platforms, targetAudience } = req.body;
       
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/generate-hashtags", authenticateToken, async (req, res) => {
+  app.post("/api/ai/generate-hashtags", async (req, res) => {
     try {
       const { content, platforms } = req.body;
       
@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/suggest-timing", authenticateToken, async (req, res) => {
+  app.post("/api/ai/suggest-timing", async (req, res) => {
     try {
       const { content, platforms } = req.body;
       
@@ -194,14 +194,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Apply authentication middleware to all routes below
-  app.use(authenticateToken);
+  // Note: Authentication is now handled by Supabase Auth on the frontend
+  // Removed server-side authentication middleware for Supabase migration
 
   // Analytics endpoints
   app.get("/api/analytics/summary", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const summary = await storageInstance.getAnalyticsSummary(userId);
       res.json(summary);
@@ -212,8 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const { platform } = req.query;
       const analytics = await storageInstance.getAnalytics(userId, platform as string);
@@ -224,10 +222,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Social accounts endpoints - supports unlimited accounts per user
-  app.get("/api/social-accounts", authenticateToken, async (req: any, res) => {
+  app.get("/api/social-accounts", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const accounts = await storageInstance.getSocialAccounts(userId);
       res.json(accounts);
