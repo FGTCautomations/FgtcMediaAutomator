@@ -26,69 +26,51 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
 
-  // Use legacy auth system if Supabase not configured
-  const { data: legacyUser, isLoading: legacyLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/user"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/user", {
-        credentials: "include",
-      });
-      if (res.status === 401) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      const userData = await res.json();
-      return userData ? {
-        id: userData.id.toString(),
-        email: userData.email,
-        name: userData.name,
-        avatar: userData.avatar,
-      } : null;
-    },
-    retry: false,
-    enabled: !hasSupabaseConfig,
-  });
-
-  // Initialize auth state
+  // Initialize auth state with Supabase
   useEffect(() => {
-    if (!hasSupabaseConfig) {
-      setUser(legacyUser || null);
-      setIsLoading(legacyLoading);
-      return;
-    }
+    let mounted = true;
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
-          avatar: session.user.user_metadata?.avatar_url,
-        });
+      if (mounted) {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
+            avatar: session.user.user_metadata?.avatar_url,
+          });
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
-          avatar: session.user.user_metadata?.avatar_url,
-        });
-      } else {
-        setUser(null);
+      if (mounted) {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
+            avatar: session.user.user_metadata?.avatar_url,
+          });
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [hasSupabaseConfig, legacyUser, legacyLoading]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Sign up mutation
   const signupMutation = useMutation({
@@ -137,16 +119,9 @@ export function useAuth() {
   // Sign out mutation
   const signoutMutation = useMutation({
     mutationFn: async () => {
-      if (hasSupabaseConfig) {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          throw new Error(error.message);
-        }
-      } else {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include",
-        });
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error(error.message);
       }
     },
     onSuccess: () => {
