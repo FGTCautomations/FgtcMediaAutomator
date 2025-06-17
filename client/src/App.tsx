@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ErrorBoundary } from "@/components/feedback/error-boundary";
 import { useAuth } from "@/hooks/useAuth";
+import { hasSupabaseConfig } from "@/lib/supabase";
+import { SupabaseConfigNotice } from "@/components/supabase-config-notice";
 import { Loader2 } from "lucide-react";
 import AppLayout from "@/components/layout/app-layout";
 import LoginPage from "@/pages/login";
@@ -23,6 +25,11 @@ import Team from "@/pages/team";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  // Check if Supabase is configured
+  if (!hasSupabaseConfig) {
+    return <SupabaseConfigNotice />;
+  }
+
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
