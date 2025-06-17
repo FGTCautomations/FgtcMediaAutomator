@@ -132,7 +132,6 @@ export default function AdminPanel() {
     }
 
     changePasswordMutation.mutate({
-      currentPassword: passwordForm.currentPassword,
       newPassword: passwordForm.newPassword,
     });
   };
