@@ -50,7 +50,7 @@ export function useAuth() {
   // Initialize auth state
   useEffect(() => {
     if (!hasSupabaseConfig) {
-      setUser(legacyUser);
+      setUser(legacyUser || null);
       setIsLoading(legacyLoading);
       return;
     }
@@ -137,9 +137,16 @@ export function useAuth() {
   // Sign out mutation
   const signoutMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw new Error(error.message);
+      if (hasSupabaseConfig) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          throw new Error(error.message);
+        }
+      } else {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
       }
     },
     onSuccess: () => {

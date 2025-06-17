@@ -8,6 +8,7 @@ import PostComposer from "@/components/modals/post-composer";
 import ScheduledPostsManager from "@/components/posts/scheduled-posts-manager";
 import AccountManager from "@/components/social/account-manager";
 import LiveAnalytics from "@/components/analytics/live-analytics";
+import AdminPanel from "@/components/admin-panel";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -31,11 +32,12 @@ export default function Dashboard() {
       <QuickActions />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled Posts</TabsTrigger>
           <TabsTrigger value="analytics">Live Analytics</TabsTrigger>
           <TabsTrigger value="accounts">Social Accounts</TabsTrigger>
+          <TabsTrigger value="admin">Admin Panel</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6 space-y-6">
@@ -62,6 +64,10 @@ export default function Dashboard() {
         
         <TabsContent value="accounts" className="mt-6">
           <AccountManager />
+        </TabsContent>
+        
+        <TabsContent value="admin" className="mt-6">
+          <AdminPanel />
         </TabsContent>
       </Tabs>
       

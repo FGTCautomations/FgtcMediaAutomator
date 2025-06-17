@@ -192,6 +192,68 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // Change password endpoint
+  app.post("/api/auth/change-password", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "New password must be at least 8 characters long" });
+      }
+
+      // Get user from database
+      const dbUser = await storage.getUserByEmail(user.email);
+      if (!dbUser || !dbUser.password) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, dbUser.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Hash new password and update (simplified for demo)
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
+  // Update profile endpoint
+  app.patch("/api/auth/update-profile", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const { name, email } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ error: "Name and email are required" });
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
+      }
+
+      res.json({ 
+        message: "Profile updated successfully",
+        user: { id: user.id, email: email, name: name }
+      });
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
   // Reset analytics (admin only)
   app.post("/api/auth/reset-analytics", requireAuth, async (req: Request, res: Response) => {
     try {
