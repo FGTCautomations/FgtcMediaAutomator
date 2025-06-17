@@ -30,6 +30,16 @@ export function useAuth() {
   useEffect(() => {
     let mounted = true;
 
+    if (!hasSupabaseConfig || !supabase) {
+      // No Supabase configuration, user is not authenticated
+      if (mounted) {
+        setUser(null);
+        setSession(null);
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
@@ -75,6 +85,10 @@ export function useAuth() {
   // Sign up mutation
   const signupMutation = useMutation({
     mutationFn: async (data: SignupCredentials) => {
+      if (!hasSupabaseConfig || !supabase) {
+        throw new Error("Authentication service not configured. Please provide Supabase credentials.");
+      }
+      
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -100,6 +114,10 @@ export function useAuth() {
   // Sign in mutation
   const signinMutation = useMutation({
     mutationFn: async (data: LoginCredentials) => {
+      if (!hasSupabaseConfig || !supabase) {
+        throw new Error("Authentication service not configured. Please provide Supabase credentials.");
+      }
+      
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
@@ -119,6 +137,10 @@ export function useAuth() {
   // Sign out mutation
   const signoutMutation = useMutation({
     mutationFn: async () => {
+      if (!hasSupabaseConfig || !supabase) {
+        throw new Error("Authentication service not configured.");
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw new Error(error.message);
@@ -132,6 +154,10 @@ export function useAuth() {
   // Reset password mutation
   const resetPasswordMutation = useMutation({
     mutationFn: async (email: string) => {
+      if (!hasSupabaseConfig || !supabase) {
+        throw new Error("Authentication service not configured.");
+      }
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });

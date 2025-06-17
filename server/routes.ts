@@ -56,6 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize storage with database manager
   storageInstance = await databaseManager.initialize();
+  
+  // Auto-migration disabled until credentials are properly configured
 
   // Serve static files from uploads directory
   app.use('/uploads', express.static('uploads'));

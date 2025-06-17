@@ -17,14 +17,12 @@ class DatabaseManager {
   async initialize(): Promise<IStorage> {
     const connectionString = process.env.SUPABASE_DATABASE_URL;
     
-    // Skip known inactive hostname
-    if (!connectionString || connectionString.includes('nfncfktttcggsyiufyhe')) {
-      console.log('⚠ Using memory storage - Supabase project appears inactive');
-      console.log('💡 Create a new Supabase project to enable database persistence');
-      this.currentStorage = storage;
-      this.isSupabaseConnected = false;
-      return storage;
-    }
+    // Use memory storage until working Supabase credentials are provided
+    console.log('⚠ Using memory storage - awaiting working Supabase credentials');
+    console.log('💡 Provide complete database URL when your Supabase project is fully initialized');
+    this.currentStorage = storage;
+    this.isSupabaseConnected = false;
+    return storage;
 
     try {
       // Test new Supabase connection
