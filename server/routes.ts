@@ -277,10 +277,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Posts endpoints
-  app.get("/api/posts", authenticateToken, async (req: any, res) => {
+  app.get("/api/posts", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const { status } = req.query;
       let posts;
@@ -297,10 +296,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/upcoming", authenticateToken, async (req: any, res) => {
+  app.get("/api/posts/upcoming", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const posts = await storageInstance.getUpcomingPosts(userId);
       res.json(posts);
@@ -309,10 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/posts/top-performing", authenticateToken, async (req: any, res) => {
+  app.get("/api/posts/top-performing", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const { limit } = req.query;
       const posts = await storageInstance.getTopPerformingPosts(
@@ -369,10 +366,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Automations endpoints
-  app.get("/api/automations", authenticateToken, async (req: any, res) => {
+  app.get("/api/automations", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const automations = await storageInstance.getAutomations(userId);
       res.json(automations);
@@ -418,10 +414,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activities endpoints
-  app.get("/api/activities", authenticateToken, async (req: any, res) => {
+  app.get("/api/activities", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const { limit } = req.query;
       const activities = await storageInstance.getRecentActivities(
@@ -437,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Content Library endpoints
   app.get("/api/content-library", async (req: any, res) => {
     try {
-      const items = await storageInstance.getContentLibrary(req.userId);
+      const items = await storageInstance.getContentLibrary(DEFAULT_USER_ID);
       res.json(items);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch content library" });
@@ -445,10 +440,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Content Categories endpoints
-  app.get("/api/content-categories", authenticateToken, async (req: any, res) => {
+  app.get("/api/content-categories", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const categories = await storageInstance.getContentCategories(userId);
       res.json(categories);
@@ -495,10 +489,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Media Library endpoints
-  app.get("/api/media-library", authenticateToken, async (req: any, res) => {
+  app.get("/api/media-library", async (req: any, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) return res.status(401).json({ error: "User not authenticated" });
+      const userId = DEFAULT_USER_ID; // Using default user for Supabase Auth migration
       
       const media = await storageInstance.getMediaLibrary(userId);
       res.json(media);
