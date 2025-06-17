@@ -1,322 +1,289 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { Settings, Lock, Shield, User } from "lucide-react";
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
-  confirmPassword: z.string().min(8, "Password confirmation is required"),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-const updateProfileSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-});
-
-type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
-type UpdateProfileForm = z.infer<typeof updateProfileSchema>;
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, User, Key, BarChart3 } from "lucide-react";
 
 export default function AdminPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-
-  const passwordForm = useForm<ChangePasswordForm>({
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
+  
+  // Password change form state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-  const profileForm = useForm<UpdateProfileForm>({
-    resolver: zodResolver(updateProfileSchema),
-    defaultValues: {
-      name: user?.name || "",
-      email: user?.email || "",
-    },
+  // Profile update form state
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
   });
 
+  // Change password mutation
   const changePasswordMutation = useMutation({
-    mutationFn: async (data: ChangePasswordForm) => {
-      const response = await fetch("/api/auth/change-password", {
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      return await apiRequest("/api/auth/change-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        }),
-        credentials: "include",
+        body: JSON.stringify(data),
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to change password");
-      }
-      
-      return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Password updated",
-        description: "Your password has been successfully changed.",
+        title: "Success",
+        description: "Password changed successfully",
       });
-      passwordForm.reset();
-      setIsPasswordDialogOpen(false);
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to change password",
         variant: "destructive",
       });
     },
   });
 
+  // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateProfileForm) => {
-      const response = await fetch("/api/auth/update-profile", {
+    mutationFn: async (data: { name: string; email: string }) => {
+      return await apiRequest("/api/auth/update-profile", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(data),
-        credentials: "include",
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update profile");
-      }
-      
-      return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        title: "Success",
+        description: "Profile updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setIsProfileDialogOpen(false);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     },
   });
 
-  const onPasswordSubmit = (data: ChangePasswordForm) => {
-    changePasswordMutation.mutate(data);
+  // Reset analytics mutation
+  const resetAnalyticsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/auth/reset-analytics", {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Analytics reset successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset analytics",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
+    });
   };
 
-  const onProfileSubmit = (data: UpdateProfileForm) => {
-    updateProfileMutation.mutate(data);
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!profileForm.name || !profileForm.email) {
+      toast({
+        title: "Error",
+        description: "Name and email are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateProfileMutation.mutate(profileForm);
   };
 
-  if (!user) return null;
+  const handleResetAnalytics = () => {
+    if (confirm("Are you sure you want to reset all analytics data? This action cannot be undone.")) {
+      resetAnalyticsMutation.mutate();
+    }
+  };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-blue-600" />
-          <CardTitle>Admin Settings</CardTitle>
-        </div>
-        <CardDescription>
-          Manage your account settings and security preferences
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Profile Management */}
-          <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                <User className="w-4 h-4 mr-2" />
-                Update Profile
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Update Profile</DialogTitle>
-                <DialogDescription>
-                  Update your account information
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                  <FormField
-                    control={profileForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={profileForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your email" type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsProfileDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={updateProfileMutation.isPending}
-                    >
-                      {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Shield className="h-6 w-6 text-blue-600" />
+        <h2 className="text-2xl font-bold">Admin Panel</h2>
+      </div>
 
-          {/* Password Change */}
-          <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start">
-                <Lock className="w-4 h-4 mr-2" />
-                Change Password
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Change Password</DialogTitle>
-                <DialogDescription>
-                  Update your account password for better security
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...passwordForm}>
-                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                  <FormField
-                    control={passwordForm.control}
-                    name="currentPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Current Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Enter current password" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={passwordForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Enter new password" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={passwordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Confirm new password" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsPasswordDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={changePasswordMutation.isPending}
-                    >
-                      {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="password" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            Password
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Account Information */}
-        <div className="pt-4 border-t">
-          <h4 className="text-sm font-medium mb-2">Account Information</h4>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div>
-              <span className="font-medium">Email:</span> {user.email}
-            </div>
-            <div>
-              <span className="font-medium">Name:</span> {user.name}
-            </div>
-            <div>
-              <span className="font-medium">User ID:</span> {user.id}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        <TabsContent value="profile" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Update Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                    placeholder="Enter your email"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  disabled={updateProfileMutation.isPending}
+                  className="w-full"
+                >
+                  {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="password" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    placeholder="Enter current password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    placeholder="Enter new password (min 8 characters)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  disabled={changePasswordMutation.isPending}
+                  className="w-full"
+                >
+                  {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Reset all analytics data for your account. This will clear all historical data including 
+                follower counts, engagement metrics, and post performance data.
+              </p>
+              <Button 
+                onClick={handleResetAnalytics}
+                disabled={resetAnalyticsMutation.isPending}
+                variant="destructive"
+                className="w-full"
+              >
+                {resetAnalyticsMutation.isPending ? "Resetting..." : "Reset All Analytics"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
